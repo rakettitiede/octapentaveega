@@ -63,3 +63,92 @@ endmode
 17: [H SYNC (PIXELS)]           :    48.000000
 18: [H FRONT PORCH (PIXELS)]    :     8.000000
 36: [V ODD FRONT PORCH(LINES)]  :     1.000000
+
+
+
+
+
+
+
+
+
+
+mode "320x200 60Hz 32bit (GTF)"
+    # PCLK: 4.19 MHz, H: 12.48 kHz, V: 60.00 Hz
+    geometry 320 200 320 200 32
+    timings 238477 8 -16 4 1 24 3
+    hsync low
+    vsync high
+endmode
+
+
+ 1: [H PIXELS RND]              :   320.000000
+ 2: [V LINES RND]               :   200.000000
+ 3: [V FIELD RATE RQD]          :    60.000000
+ 4: [TOP MARGIN (LINES)]        :     0.000000
+ 5: [BOT MARGIN (LINES)]        :     0.000000
+ 6: [INTERLACE]                 :     0.000000
+ 7: [H PERIOD EST]              :    80.182421
+ 8: [V SYNC+BP]                 :     7.000000
+ 9: [V BACK PORCH]              :     4.000000
+10: [TOTAL V LINES]             :   208.000000
+11: [V FIELD RATE EST]          :    59.959430
+12: [H PERIOD]                  :    80.128205
+13: [V FIELD RATE]              :    60.000000
+14: [V FRAME RATE]              :    60.000000
+15: [LEFT MARGIN (PIXELS)]      :     0.000000
+16: [RIGHT MARGIN (PIXELS)]     :     0.000000
+17: [TOTAL ACTIVE PIXELS]       :   320.000000
+18: [IDEAL DUTY CYCLE]          :     5.961538
+19: [H BLANK (PIXELS)]          :    16.000000
+20: [TOTAL PIXELS]              :   336.000000
+21: [PIXEL FREQ]                :     4.193280
+22: [H FREQ]                    :    12.480000
+17: [H SYNC (PIXELS)]           :    24.000000
+18: [H FRONT PORCH (PIXELS)]    :   -16.000000
+36: [V ODD FRONT PORCH(LINES)]  :     1.000000
+
+
+
+
+
+
+
+
+
+
+
+
+mode "304x200 60Hz 32bit (GTF)"
+    # PCLK: 3.99 MHz, H: 12.48 kHz, V: 60.00 Hz
+    geometry 304 200 304 200 32
+    timings 250401 8 -16 4 1 24 3
+    hsync low
+    vsync high
+endmode
+
+ 1: [H PIXELS RND]              :   304.000000
+ 2: [V LINES RND]               :   200.000000
+ 3: [V FIELD RATE RQD]          :    60.000000
+ 4: [TOP MARGIN (LINES)]        :     0.000000
+ 5: [BOT MARGIN (LINES)]        :     0.000000
+ 6: [INTERLACE]                 :     0.000000
+ 7: [H PERIOD EST]              :    80.182421
+ 8: [V SYNC+BP]                 :     7.000000
+ 9: [V BACK PORCH]              :     4.000000
+10: [TOTAL V LINES]             :   208.000000
+11: [V FIELD RATE EST]          :    59.959430
+12: [H PERIOD]                  :    80.128205
+13: [V FIELD RATE]              :    60.000000
+14: [V FRAME RATE]              :    60.000000
+15: [LEFT MARGIN (PIXELS)]      :     0.000000
+16: [RIGHT MARGIN (PIXELS)]     :     0.000000
+17: [TOTAL ACTIVE PIXELS]       :   304.000000
+18: [IDEAL DUTY CYCLE]          :     5.961538
+19: [H BLANK (PIXELS)]          :    16.000000
+20: [TOTAL PIXELS]              :   320.000000
+21: [PIXEL FREQ]                :     3.993600
+22: [H FREQ]                    :    12.480000
+17: [H SYNC (PIXELS)]           :    24.000000
+18: [H FRONT PORCH (PIXELS)]    :   -16.000000
+36: [V ODD FRONT PORCH(LINES)]  :     1.000000
