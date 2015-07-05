@@ -2,34 +2,37 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include <util/delay.h>
+#include <string.h>
 #include <stdint.h>
+#include "font.h"
 
-volatile uint8_t line[36];
+volatile uint8_t line[36] = {};
+volatile uint8_t linebuffer[36] = {};
+volatile uint8_t screen[396] = { 72, 101, 108, 108, 111 };
 volatile uint16_t vline = 0;
+uint16_t charindex = 0; 
+
+#define VMIN 61
+#define VMAX 445
 
 ISR(TIM1_COMPA_vect) {
-	PORTB &= ~(1 << PB0);
+	PORTB |= (1 << PB0);
 	vline = 0;
 }
 
 ISR(TIM0_COMPA_vect) {
 	PORTB |= (1 << PB2);
-    __asm__ volatile(
-        ".rept 74"						"\n\t" 
-        "nop"							"\n\t"
-        ".endr"							"\n\t"
-    );
+	__asm__ volatile(".rept 72\n\tnop\n\t.endr\n\t");
 	PORTB &= ~(1 << PB2);
 
 	vline++;
-	if (vline == 3) PORTB |= (1 << PB0);
-	if (vline < 35 || vline > 480) return;
+	if (vline == 2) PORTB &= ~(1 << PB0);
 
-    __asm__ volatile(
-        ".rept 32"						"\n\t" 
-        "nop"							"\n\t"
-        ".endr"							"\n\t"
-    );
+	if (vline < VMIN || vline > VMAX) {
+		return;
+	}
+
+	__asm__ volatile(".rept 6\n\tnop\n\t.endr\n\t");
 
 	USIDR = line[0];
 	USICR |= (1 << USICLK);
@@ -268,6 +271,20 @@ ISR(TIM0_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
+
+	USIDR = line[34];
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = line[35];
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
 }
 
 int main(void) {
@@ -282,20 +299,23 @@ int main(void) {
 	TCCR0A = (1 << WGM01);
 	TCCR0B = (1 << CS01);
 	TIMSK |= (1 << OCIE0A);
-	OCR0A = 79;
+	OCR0A = 80;
 
 	//VSYNC
 	TCCR1 = (1 << CTC1) | (1 << CS12) | (1 << CS13);
-	OCR1A = 159;
-	OCR1C = 159;
+	OCR1A = 161;
+	OCR1C = 161;
 	TIMSK |= (1 << OCIE1A);
 
+	// Sleep mode
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
+	// Enable interrupts
 	sei();
 
-	for(uint8_t i = 0; i < 36; i++) line[i] = 0xA8; //A8
+	for(uint8_t j = 0; j < 36; j++) line[j] = 21 << 3;
 
-	for(;;) sleep_mode();
+	for(;;) {
+	}
 }
 
