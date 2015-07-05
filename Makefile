@@ -18,7 +18,7 @@ PROGRAMMER = -c usbasp
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
 COMPILE = avr-gcc -Wall -Os -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
- 
+
 # symbolic targets:
 all:    main.hex
  
