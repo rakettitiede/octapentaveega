@@ -6,10 +6,15 @@
 #include <stdint.h>
 #include "font.h"
 
+typedef union {
+	uint16_t word;
+	uint8_t arr[2];
+} magic;
+
 volatile uint8_t line[36] = {};
 volatile uint8_t linebuffer[36] = {};
 volatile uint8_t screen[396] = { 72, 101, 108, 108, 111 };
-volatile uint16_t vline = 0;
+volatile magic vline;
 uint16_t charindex = 0; 
 
 #define VMIN 61
@@ -17,7 +22,8 @@ uint16_t charindex = 0;
 
 ISR(TIM1_COMPA_vect) {
 	PORTB |= (1 << PB0);
-	vline = 0;
+	vline.arr[0] = 0;
+	vline.arr[1] = 0;
 }
 
 ISR(TIM0_COMPA_vect) {
@@ -25,10 +31,10 @@ ISR(TIM0_COMPA_vect) {
 	__asm__ volatile(".rept 72\n\tnop\n\t.endr\n\t");
 	PORTB &= ~(1 << PB2);
 
-	vline++;
-	if (vline == 2) PORTB &= ~(1 << PB0);
+	vline.word++;
+	if (vline.word == 2) PORTB &= ~(1 << PB0);
 
-	if (vline < VMIN || vline > VMAX) {
+	if (vline.word < VMIN || vline.word > VMAX) {
 		return;
 	}
 
