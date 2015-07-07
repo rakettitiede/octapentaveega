@@ -12,69 +12,70 @@
 .extern vline
 
 TIM1_COMPA_vect:
-	push r16
-	in r16, SREG
+	in r2, SREG			; Save SREG
 
+	; Store registers
 	push r1
 	eor	r1, r1
 	push r24
 	push r25
 
-
 	; HSYNC
-	sbi PORTB, PB2
-	.rept 72
+	sbi PORTB, PB2			; HSYNC HIGH
+	.rept 73
 		nop
 	.endr
-	cbi PORTB, PB2
+	cbi PORTB, PB2			; HSYNC LOW
 
 	; VSYNC
-	lds	r24, vline
-	lds	r25, (vline)+1
-	cpi r24, 0xCF		; 462(+1) VSYNC end
-	sbci r25, 0x01
-	brne vsync_start
-	cbi PORTB, PB0		; VSYNC low
-
-	vsync_start:
+	vsync_low:
 		lds	r24, vline
+		lds	r25, (vline)+1
+		cpi r24, 0xCF		; 462(+1) VSYNC end
+		sbci r25, 0x01
+		brne vsync_high
+		cbi PORTB, PB0		; VSYNC low
+
+	vsync_high:
 		lds	r25, (vline)+1
 		cpi r24, 0xCD		; 460(+1) VSYNC start
 		sbci r25, 0x01
-		brne vline_inc
+		brne vline_increase
 		sbi PORTB, PB0		; VSYNC high
 
-	vline_inc:
-		lds	r24, vline
+	vline_increase:
 		lds	r25, (vline)+1
 		adiw r24, 0x01
 		sts vline, r24
 		sts (vline)+1, r25
 
-	vline_full:
-		lds	r24, vline
-		lds	r25, (vline)+1
-		cpi r24, 0x0D		; 525(+1) Full screen
+	; Check if we've done 525 lines = full screen
+		cpi r24, 0x0D		; 525(+1)
 		sbci r25, 0x02
-		brne vline_no525
+		brne vsync_done
 		sts vline, r1
 		sts (vline)+1, r1
-		rjmp vsync_done
+;		rjmp isr_end
 
-	vline_no525:
-		nop
-		nop
-		nop
-		nop
-		nop
-
+	; Next check if we're outside visible area
 	vsync_done:
-		nop
+;		lds	r24, vline
+;		lds r25, (vline)+1
+;		cpi r24, 0x80		; Visible area low byte
+;		sbci r25, 0x01
+;		brcs draw_pixels
+;		rjmp isr_end
+
+	draw_pixels:
+		sbi PORTB, PB1
+		.rept 400
+			nop
+		.endr
+		cbi PORTB, PB1
 
 	isr_end:
 		pop r25
 		pop r24
 		pop r1
-		out SREG, r16
-		pop r16
+		out SREG, r2
 		reti
