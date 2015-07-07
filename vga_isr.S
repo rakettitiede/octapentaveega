@@ -59,16 +59,16 @@ TIM1_COMPA_vect:
 
 	; Next check if we're outside visible area
 	vsync_done:
-;		lds	r24, vline
-;		lds r25, (vline)+1
-;		cpi r24, 0x80		; Visible area low byte
-;		sbci r25, 0x01
-;		brcs draw_pixels
-;		rjmp isr_end
+		lds	r24, vline
+		lds r25, (vline)+1
+		cpi r24, 0x80		; Visible area low byte
+		sbci r25, 0x01
+		brcs draw_pixels
+		rjmp isr_end
 
 	draw_pixels:
 		sbi PORTB, PB1
-		.rept 400
+		.rept 480
 			nop
 		.endr
 		cbi PORTB, PB1

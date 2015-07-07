@@ -265,14 +265,15 @@ volatile uint16_t vline = 462;
 // }
 
 int main(void) {
-	DDRB |= (1 << PB0) | (1 << PB1) | (1 << PB2);
-	PORTB &= ~((1 << PB0) | (1 << PB1) | (1 << PB2));
-	USICR = (1 << USIWM0);
-	alter = 0;
-
-	PORTB |= (1 << PB1);
-	__asm__ volatile(".rept 70\n\tnop\n\t.endr\n\t");
+	DDRB |= (1 << PB0);
+	DDRB |= (1 << PB1);
+	DDRB |= (1 << PB2);
+	PORTB &= ~(1 << PB0);
 	PORTB &= ~(1 << PB1);
+	PORTB &= ~(1 << PB2);
+//	USICR = (1 << USIWM0);
+	alter = 0;
+	erorrer = 32;
 
 	cli();
 
