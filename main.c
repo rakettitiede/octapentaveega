@@ -273,7 +273,7 @@ int main(void) {
 	PORTB &= ~(1 << PB2);
 //	USICR = (1 << USIWM0);
 	alter = 0;
-	erorrer = 32;
+	eorrer = 32;
 
 	cli();
 

@@ -17,8 +17,8 @@ TIM1_COMPA_vect:
 	; Store registers
 	push r1
 	eor	r1, r1
-	push r24
-	push r25
+	push r30
+	push r31
 
 	; HSYNC
 	sbi PORTB, PB2			; HSYNC HIGH
@@ -29,29 +29,29 @@ TIM1_COMPA_vect:
 
 	; VSYNC
 	vsync_low:
-		lds	r24, vline
-		lds	r25, (vline)+1
-		cpi r24, 0xCF		; 462(+1) VSYNC end
-		sbci r25, 0x01
+		lds	ZL, vline
+		lds	ZH, (vline)+1
+		cpi ZL, 0xCF		; 462(+1) VSYNC end
+		sbci ZH, 0x01
 		brne vsync_high
 		cbi PORTB, PB0		; VSYNC low
 
 	vsync_high:
-		lds	r25, (vline)+1
-		cpi r24, 0xCD		; 460(+1) VSYNC start
-		sbci r25, 0x01
+		lds	ZH, (vline)+1
+		cpi ZL, 0xCD		; 460(+1) VSYNC start
+		sbci ZH, 0x01
 		brne vline_increase
 		sbi PORTB, PB0		; VSYNC high
 
 	vline_increase:
-		lds	r25, (vline)+1
-		adiw r24, 0x01
-		sts vline, r24
-		sts (vline)+1, r25
+		lds	ZH, (vline)+1
+		adiw ZL, 0x01
+		sts vline, ZL
+		sts (vline)+1, ZH
 
 	; Check if we've done 525 lines = full screen
-		cpi r24, 0x0D		; 525(+1)
-		sbci r25, 0x02
+		cpi ZL, 0x0D		; 525(+1)
+		sbci ZH, 0x02
 		brne vsync_done
 		sts vline, r1
 		sts (vline)+1, r1
@@ -59,10 +59,10 @@ TIM1_COMPA_vect:
 
 	; Next check if we're outside visible area
 	vsync_done:
-		lds	r24, vline
-		lds r25, (vline)+1
-		cpi r24, 0x80		; Visible area low byte
-		sbci r25, 0x01
+		lds	ZL, vline
+		lds ZH, (vline)+1
+		cpi ZL, 0x80		; Visible area low byte
+		sbci ZH, 0x01
 		brcs draw_pixels
 		rjmp isr_end
 
@@ -74,8 +74,8 @@ TIM1_COMPA_vect:
 		cbi PORTB, PB1
 
 	isr_end:
-		pop r25
-		pop r24
+		pop r31
+		pop r30
 		pop r1
 		out SREG, r2
 		reti
