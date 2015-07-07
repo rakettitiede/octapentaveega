@@ -7,12 +7,11 @@
 #include "font.h"
 
 volatile uint8_t line[65] = {};
-volatile uint8_t screen[384] = { 72, 101, 108, 108, 111 };
+volatile uint8_t screen[384] = { 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, };
 volatile uint16_t vline;
 uint16_t charindex = 0; 
 
-#define VMIN 62
-#define VMAX 445
+#define VMAX 384
 
 ISR(TIM1_COMPA_vect) {
 	static uint8_t alter = 0;
@@ -20,15 +19,15 @@ ISR(TIM1_COMPA_vect) {
 	volatile uint8_t *lineptr;
 
 	PORTB |= (1 << PB2); // Hsync HIGH. Code should lose 70 cycles here
-	if (++vline == 525) vline = 0;
-	__asm__ volatile(".rept 59\n\tnop\n\t.endr\n\t");
+	__asm__ volatile(".rept 70\n\tnop\n\t.endr\n\t");
 	PORTB &= ~(1 << PB2); // Hsync LOW
 
-	if (vline == 2) PORTB &= ~(1 << PB0);
-	if (vline == 0) PORTB |= (1 << PB0);
+	if (vline == 464) PORTB &= ~(1 << PB0);
+	if (vline == 462) PORTB |= (1 << PB0);
+	vline++;
 
-
-	if (vline < VMIN || vline > VMAX) {
+	if (vline > VMAX) {
+		if (vline == 525) vline = 0;
 		altcnt = 0;
 		alter = 0;
 		return;
@@ -278,6 +277,8 @@ int main(void) {
 	OCR1A = 158;
 	OCR1C = 158;
 	TIMSK |= (1 << OCIE1A);
+	TCCR0A = 0;
+	TCCR0B = (1 << CS00) | (1 << CS02);
 
 	// Sleep mode
 	set_sleep_mode(SLEEP_MODE_IDLE);
@@ -288,7 +289,9 @@ int main(void) {
 	for(uint8_t j = 0; j < 32; j++) line[j] = 10 << 3;
 	for(uint8_t j = 32; j < 64; j++) line[j] = 21 << 3;
 
-	for(;;) sleep_mode();
-//	for(;;); // this will jitter
+	for(;;) {
+		while(vline <= VMAX) sleep_mode();
+		while(vline) sleep_mode();
+	}
 }
 
