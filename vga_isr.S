@@ -10,6 +10,7 @@
 .extern line
 .extern screen
 .extern vline
+.extern alter
 
 TIM1_COMPA_vect:
 	in r2, SREG			; Save SREG
@@ -17,6 +18,7 @@ TIM1_COMPA_vect:
 	; Store registers
 	push r1
 	eor	r1, r1
+	push r16
 	push r30
 	push r31
 
@@ -67,15 +69,25 @@ TIM1_COMPA_vect:
 		rjmp isr_end
 
 	draw_pixels:
-		sbi PORTB, PB1
-		.rept 480
-			nop
+		lds r16, alter
+		lds ZL, line
+		lds ZH, (line)+1
+		add ZL, r16
+		adc ZH, 0x00
+
+		; Draw pixels using USI
+		.rept 32
+			ld r16, Z+
+			out USIDR, r16
+			.rept 5
+				sbi USICR, USICLK
+			.endr
 		.endr
-		cbi PORTB, PB1
 
 	isr_end:
 		pop r31
 		pop r30
+		pop r16
 		pop r1
 		out SREG, r2
 		reti
