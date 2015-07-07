@@ -12,7 +12,7 @@
  
 DEVICE     = attiny85
 CLOCK      = 20000000
-OBJECTS    = main.o
+OBJECTS    = main.o vga_isr.S
 FUSES      = -U lfuse:w:0xff:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
 PROGRAMMER = -c usbasp
 
