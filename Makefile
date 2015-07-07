@@ -12,7 +12,7 @@
  
 DEVICE     = attiny85
 CLOCK      = 20000000
-OBJECTS    = main.o vga_isr.S
+OBJECTS    = main.o vga_isr.o
 FUSES      = -U lfuse:w:0xff:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
 PROGRAMMER = -c usbasp
 
@@ -21,7 +21,7 @@ COMPILE = avr-gcc -Wall -Os -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
 
 # Place font data to specific address
 LDFLAGS = \
-	-Wl,--section-start=.vgafont=0x1800
+#	-Wl,--section-start=.vgafont=0x1800
 
 # symbolic targets:
 all:    main.hex
@@ -66,8 +66,9 @@ main.elf: $(OBJECTS) font.h
  
 main.hex: main.elf
 	rm -f main.hex
-	avr-objcopy -j .text -j .data -j .vgafont -O ihex main.elf main.hex
-#   avr-size --format=avr --mcu=$(DEVICE) main.elf
+#	avr-objcopy -j .text -j .data -j .vgafont -O ihex main.elf main.hex
+	avr-objcopy -j .text -j .data -O ihex main.elf main.hex
+	avr-size --format=avr --mcu=$(DEVICE) main.elf
 # If you have an EEPROM section, you must also create a hex file for the
 # EEPROM and add it to the "flash" target.
  
