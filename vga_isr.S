@@ -66,22 +66,282 @@ TIM1_COMPA_vect:
 		cpi ZL, 0x80		; Visible area low byte
 		sbci ZH, 0x01
 		brcs draw_pixels
+		;
+		; Clear variables here
+		;
+		sts alter, 0x00
 		rjmp isr_end
 
 	draw_pixels:
 		lds r16, alter
-		lds ZL, line
-		lds ZH, (line)+1
+		ldi ZL, lo8(line)
+		ldi ZH, hi8(line)
+		sbiw ZL, 0x01
 		add ZL, r16
-		adc ZH, 0x00
+		adc ZH, r1
 
-		; Draw pixels using USI
-		.rept 32
-			ld r16, Z+
-			out USIDR, r16
-			.rept 5
-				sbi USICR, USICLK
-			.endr
+		ld r16, Z
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+1
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+2
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+3
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+4
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+5
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+6
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+7
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+8
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+9
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+10
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+11
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+12
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+13
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+14
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+15
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+16
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+17
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+18
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+19
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+20
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+21
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+22
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+23
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+24
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+25
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+26
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+27
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+28
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+29
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+30
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		ldd r16, Z+31
+		out USIDR, r16
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+
+		lds r16, alter
+		eor r16, eorval
+		sts alter, r16
+
+		.rept 50
+			nop
 		.endr
 
 	isr_end:

@@ -21,8 +21,8 @@ int main(void) {
 	PORTB &= ~(1 << PB1);
 	PORTB &= ~(1 << PB2);
 	USICR = (1 << USIWM0);
-	alter = 0;
-	eorrer = 32;
+	alter = 32;
+	eorval = 32;
 
 	cli();
 
@@ -38,7 +38,8 @@ int main(void) {
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
 	// Fill first with pattern
-	for(uint8_t i = 0; i < 64; i++) line[i] = 31 << 3;
+	for(uint8_t i = 0; i < 32; i++) line[i] = 17 << 3;
+	for(uint8_t i = 32; i < 64; i++) line[i] = 31 << 3;
 
 	// Enable interrupts
 	sei();
