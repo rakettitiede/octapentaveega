@@ -22,7 +22,7 @@ COMPILE = avr-gcc -Wall -Os -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
 # Place font data to specific address
 LDFLAGS = \
 	-Wl,-Map,vga.map
-#	-Wl,--section-start=.vgafont=0x1800
+	-Wl,--section-start=.vgafont=0x1800
 
 # symbolic targets:
 all:    main.hex

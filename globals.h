@@ -1,7 +1,7 @@
 /*
  * Define global variables for both C and ASM code used
  */
-#define VMAX_VALUE 384
+#define VMAX_VALUE 385
 #define VMAX_ASM VMAX_VALUE - 256 + 1
 
 #ifdef __ASSEMBLER__

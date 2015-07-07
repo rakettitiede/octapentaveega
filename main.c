@@ -12,6 +12,9 @@ volatile uint8_t screen[384] = {};
 //volatile uint8_t screen[384] = { 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, 72, 101, 108, 108, 111, 32, };
 volatile uint16_t vline = 462;
 volatile uint8_t alter = 0;
+volatile uint8_t altcnt = 4;
+volatile uint8_t *screenptr = &screen[0];
+volatile uint16_t screenidx = 0;
 
 int main(void) {
 	DDRB |= (1 << PB0);
@@ -21,7 +24,6 @@ int main(void) {
 	PORTB &= ~(1 << PB1);
 	PORTB &= ~(1 << PB2);
 	USICR = (1 << USIWM0);
-	alter = 32;
 	eorval = 32;
 
 	cli();
@@ -38,8 +40,10 @@ int main(void) {
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
 	// Fill first with pattern
-	for(uint8_t i = 0; i < 32; i++) line[i] = 17 << 3;
-	for(uint8_t i = 32; i < 64; i++) line[i] = 31 << 3;
+	for(uint8_t i = 0; i < 32; i++) 
+		line[i] = 168;
+	for(uint8_t i = 32; i < 64; i++) 
+		line[i] = 80;
 
 	// Enable interrupts
 	sei();

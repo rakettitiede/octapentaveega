@@ -9,44 +9,48 @@
 .global TIM1_COMPA_vect
 .extern line
 .extern screen
+.extern screenptr
 .extern vline
 .extern alter
+.extern altcnt
 
 TIM1_COMPA_vect:
-	in r2, SREG			; Save SREG
+		in r2, SREG			; Save SREG
 
-	; Store registers
-	push r1
-	eor	r1, r1
-	push r16
-	push r30
-	push r31
+		; Store registers
+		push r1
+		eor	r1, r1
+		push r16
+		push r17
+		push r30
+		push r31
 
-	; HSYNC
-	sbi PORTB, PB2			; HSYNC HIGH
-	.rept 73
-		nop
-	.endr
-	cbi PORTB, PB2			; HSYNC LOW
+		; HSYNC
+		sbi PORTB, PB2			; HSYNC HIGH
+		.rept 73
+			nop
+		.endr
+		cbi PORTB, PB2			; HSYNC LOW
 
 	; VSYNC
 	vsync_low:
 		lds	ZL, vline
 		lds	ZH, (vline)+1
+		mov r16, ZH
 		cpi ZL, 0xCF		; 462(+1) VSYNC end
 		sbci ZH, 0x01
 		brne vsync_high
 		cbi PORTB, PB0		; VSYNC low
 
 	vsync_high:
-		lds	ZH, (vline)+1
+		mov ZH, r16
 		cpi ZL, 0xCD		; 460(+1) VSYNC start
 		sbci ZH, 0x01
 		brne vline_increase
 		sbi PORTB, PB0		; VSYNC high
 
 	vline_increase:
-		lds	ZH, (vline)+1
+		mov ZH, r16
 		adiw ZL, 0x01
 		sts vline, ZL
 		sts (vline)+1, ZH
@@ -57,7 +61,7 @@ TIM1_COMPA_vect:
 		brne vsync_done
 		sts vline, r1
 		sts (vline)+1, r1
-		rjmp isr_end
+		rjmp clear_stuff
 
 	; Next check if we're outside visible area
 	vsync_done:
@@ -67,16 +71,20 @@ TIM1_COMPA_vect:
 		sbci ZH, 0x01
 		brcs draw_pixels
 		;
-		; Clear variables here
+		; Clear variables when outside visible area (one screen done)
 		;
-		sts alter, 0x00
+	clear_stuff:
+		ldi r16, 0x04
+		sts altcnt, r16
+		sts alter, r1
+		sts screenidx, r1
+		sts (screenidx)+1, r1
 		rjmp isr_end
 
 	draw_pixels:
 		lds r16, alter
 		ldi ZL, lo8(line)
 		ldi ZH, hi8(line)
-		sbiw ZL, 0x01
 		add ZL, r16
 		adc ZH, r1
 
@@ -336,17 +344,22 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
+		lds r17, altcnt
+		dec r17
+		brne alterdone
+		ldi r17, 0x04
+
 		lds r16, alter
 		eor r16, eorval
 		sts alter, r16
 
-		.rept 50
-			nop
-		.endr
+	alterdone:
+		sts altcnt, r17
 
 	isr_end:
 		pop r31
 		pop r30
+		pop r17
 		pop r16
 		pop r1
 		out SREG, r2
