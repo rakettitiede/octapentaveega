@@ -270,6 +270,10 @@ int main(void) {
 	USICR = (1 << USIWM0);
 	alter = 0;
 
+	PORTB |= (1 << PB1);
+	__asm__ volatile(".rept 70\n\tnop\n\t.endr\n\t");
+	PORTB &= ~(1 << PB1);
+
 	cli();
 
 	// HSYNC timer. Prescaler 4, Compare value = 159 = 31.8us
@@ -283,18 +287,8 @@ int main(void) {
 	// Sleep mode
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
-// 	__asm__ volatile(".rept 10\n\tnop\n\t.endr\n\t");
-// 	if(vline < VMAX) goto foo;
-
-// bar:
-// 	goto bar;
-
-
-// foo:
-// 	__asm__ volatile(".rept 10\n\tnop\n\t.endr\n\t");
-
 	// Fill first with pattern
-//	for(uint8_t i = 0; i < 64; i++) line[i] = i << 3;
+	for(uint8_t i = 0; i < 64; i++) line[i] = i << 3;
 
 	// Enable interrupts
 	sei();

@@ -55,7 +55,7 @@ TIM1_COMPA_vect:
 		brne vsync_done
 		sts vline, r1
 		sts (vline)+1, r1
-;		rjmp isr_end
+		rjmp isr_end
 
 	; Next check if we're outside visible area
 	vsync_done:
