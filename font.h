@@ -1,3 +1,8 @@
+/*
+ * Generated file, do not edit!
+ * to regenerate, edit fonts in font.py and then run
+ * python font.py > font.h
+ */
 #include <stdint.h>
 volatile const uint8_t font[] __attribute__ ((section (".vgafont"))) = {
 	0b00000000,
