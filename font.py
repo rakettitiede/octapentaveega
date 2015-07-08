@@ -2315,6 +2315,7 @@ print "volatile const uint8_t font[] __attribute__ ((section (\".vgafont\"))) = 
 
 for i in range(8):
 	for h in range(256):
+		print "\t// ", ((h * 8) + i)
 		print "\t0b{0:08b},".format( font[(h * 8) + i] )
 
 print "};"

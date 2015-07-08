@@ -67,7 +67,7 @@ main.elf: $(OBJECTS) font.h
 main.hex: main.elf
 	rm -f main.hex
 	avr-objcopy -j .text -j .data -j .vgafont -O ihex main.elf main.hex
-#   avr-size --format=avr --mcu=$(DEVICE) main.elf
+	avr-size --format=avr --mcu=$(DEVICE) main.elf
 # If you have an EEPROM section, you must also create a hex file for the
 # EEPROM and add it to the "flash" target.
  
