@@ -17,11 +17,11 @@ FUSES      = -U lfuse:w:0xff:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
 PROGRAMMER = -c usbasp
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
-COMPILE = avr-gcc -Wall -Os -flto -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
+COMPILE = avr-gcc -Wall -Os -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -mstrict-X
 
 # Place font data to specific address
 LDFLAGS = \
-	-Wl,--section-start=.vgafont=0x1800
+	-Wl,--section-start=.vgafont=0x1800 \
 
 # symbolic targets:
 all:    main.hex
