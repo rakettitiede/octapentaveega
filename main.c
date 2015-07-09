@@ -26,6 +26,9 @@ volatile unsigned char screen[384] =
 	"7890,.-!\"#$%&/()+-ABCDEFGHIJKLMN"	
 	};
 
+// We reserve a lot of registers and get warning but it's OK
+// as we're not going to do anything in main (except sleep) nor
+// in any other function and everything happens inside one ISR
 register uint8_t font_line __asm__("r2");
 register uint8_t alt __asm__("r3");
 register uint8_t alt_cnt __asm__("r4");
@@ -42,12 +45,19 @@ ISR(TIM1_COMPA_vect) {
 	 * Create HSYNC. Spend 73 cycles between LOW and HIGH
 	 */
 	PORTB &= ~(1 << PB2); // HSYNC HIGH
-		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-		__asm__ volatile(".rept 28" "\t\n" "nop" "\t\n" ".endr" "\t\n" ); // Do something more in here??? :)
+
+	// Fetch and fill 3 bytes for next drawable line
+	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
+	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
+	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
+
+	// This is for timing.
+	__asm__ volatile(".rept 28" "\t\n" "nop" "\t\n" ".endr" "\t\n" ); // TODO: use this to UART?
+	
 	PORTB |= (1 << PB2); // HSYNC LOW
 
+	// Create VSYNC pulses and also exit asap if we're
+	// outside screen-visible area (to save clock cycles)
 	if (++vline > VMAX ) {
 		if (vline == 525) {
 			vline = 0;
@@ -71,6 +81,7 @@ ISR(TIM1_COMPA_vect) {
 		return;
 	}
 
+	// Fetch and fill 5 more bytes for next drawable line
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
@@ -78,8 +89,16 @@ ISR(TIM1_COMPA_vect) {
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	char_x += 8;
 
+	// Fetch the address to predrawn data
 	lineptr = (uint8_t *)&line[alt];
 
+	// Push byte to USI and push out bits as pixels
+	// Loading USIDR with new value seems to push out
+	// the 5th byte "for free", so we don't get any
+	// blanks between pixels, which is nice
+	// 
+	// Do this 32 times unrolled, because
+	// of the critical timing
 	USIDR = *lineptr++;
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -272,8 +291,12 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 
-	USIDR = 0;
+	USIDR = 0; // make sure we don't draw to porch
 
+	// Have we drawn one "pixel line" (4 horizontal lines)?
+	// If we have, increase font flash address, and possibly
+	// the screen buffer if we've drawn one full
+	// line of characters
 	if (++alt_cnt == 4) {
 		alt_cnt = 0;
 		char_x = 0;
