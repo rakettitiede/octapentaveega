@@ -308,7 +308,8 @@ int main(void) {
 	// Enable interrupts
 	sei();
 
-	// Never do anything in main, hence we dare to reserve registers for only ISR
+	// NEVER DO ANYTHING MORE HERE!
+	// We reserve registers for only ISR
 	for(;;) sleep_mode();
 }
 
