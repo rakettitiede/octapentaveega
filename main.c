@@ -8,25 +8,23 @@
 #include "font.h"
 
 volatile uint8_t line[64] = {};
-volatile unsigned char screen[384] = { 
-   //12345678901234567890123456789012
-	"Hello world. This is Attiny85   "
-	"displaying 32x12 characters on  "
-	"VGA with pure bitbang goodness.."
-	"      (C) 2015 by //Jartza      "
-	"--------------------------------"
-	"Here be dragons!    BEWARE!!!!!!"
-	"--------------------------------"
-	"            Rakettitiede rocks! "
-	"Rakettitiede rocks!             "
-	"================================"
-	"abcdefghijklmnoprstuvwxyz1234567"
-	"890,.-!\"#$%&/()+-ABCDEFGHIJKLMNO"	
-};
+volatile unsigned char screen[384] = {};
+	// "Hello world. This is Attiny85   "
+	// "displaying 32x12 characters on  "
+	// "VGA with pure bitbang goodness.."
+	// "      (C) 2015 by //Jartza      "
+	// "--------------------------------"
+	// "Here be dragons!    BEWARE!!!!!!"
+	// "--------------------------------"
+	// "            Rakettitiede rocks! "
+	// "Rakettitiede rocks!             "
+	// "================================"
+	// "abcdefghijklmnoprstuvwxyz1234567"
+	// "890,.-!\"#$%&/()+-ABCDEFGHIJKLMNO"	
 
 volatile uint16_t vline = 464;
 
-#define VMAX 384
+#define VMAX 388
 
 ISR(TIM1_COMPA_vect) {
 	static uint16_t scr_buf_off = 0;
@@ -52,7 +50,7 @@ ISR(TIM1_COMPA_vect) {
 
 	vline++;
 
-	if (vline > VMAX) {
+	if (vline > VMAX ) {
 		if (vline == 464) PORTB |= (1 << PB0);
 		if (vline == 462) PORTB &= ~(1 << PB0);
 		if (vline == 525) vline = 0;
@@ -62,12 +60,14 @@ ISR(TIM1_COMPA_vect) {
 		scr_buf_off = 0;
 		font_line = 0;
 		font_addr = 0x1800;
+		memset(&line[0], 0, 32);
 		return;
 	}
 
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
+	char_x += 8;
 
 	lineptr = &line[alt];
 
@@ -265,8 +265,6 @@ ISR(TIM1_COMPA_vect) {
 
 	USIDR = 0;
 
-	char_x += 8;
-
 	if (++alt_cnt == 4) {
 		alt_cnt = 0;
 		char_x = 0;
@@ -289,16 +287,22 @@ int main(void) {
 
 	// HSYNC timer. Prescaler 4, Compare value = 159 = 31.8us
 	TCCR1 = (1 << CTC1) | (1 << CS10) | (1 << CS11);
-	OCR1A = 162;
-	OCR1C = 162;
+	OCR1A = 161;
+	OCR1C = 161;
 	TIMSK |= (1 << OCIE1A);
 
 	// Sleep mode
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
+	for(uint16_t i = 0; i < 384; i++) screen[i] = (uint8_t) i;
+
 	// Enable interrupts
 	sei();
 
-	for(;;) sleep_mode();
+	for(;;) {
+		sleep_mode();
+//		while(vline <= VMAX) sleep_mode();
+//		memset(&line[0], 32, 0);
+	}
 }
 
