@@ -17,12 +17,11 @@ FUSES      = -U lfuse:w:0xff:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
 PROGRAMMER = -c usbasp
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
-COMPILE = avr-gcc -Wall -Os -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
+COMPILE = avr-gcc -Wall -Os -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -mstrict-X
 
 # Place font data to specific address
 LDFLAGS = \
-	-Wl,-Map,vga.map
-	-Wl,--section-start=.vgafont=0x1800
+	-Wl,--section-start=.vgafont=0x1800 \
 
 # symbolic targets:
 all:    main.hex
@@ -67,8 +66,12 @@ main.elf: $(OBJECTS) font.h
  
 main.hex: main.elf
 	rm -f main.hex
+<<<<<<< HEAD
 #	avr-objcopy -j .text -j .data -j .vgafont -O ihex main.elf main.hex
 	avr-objcopy -j .text -j .data -O ihex main.elf main.hex
+=======
+	avr-objcopy -j .text -j .data -j .vgafont -O ihex main.elf main.hex
+>>>>>>> tuesday
 	avr-size --format=avr --mcu=$(DEVICE) main.elf
 # If you have an EEPROM section, you must also create a hex file for the
 # EEPROM and add it to the "flash" target.
