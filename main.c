@@ -28,29 +28,22 @@ volatile uint8_t char_x = 0;
 ISR(TIM1_COMPA_vect) {
 	static uint8_t alt = 0;
 	static uint8_t alt_cnt = 0;
-	volatile uint8_t *lineptr;
-	volatile uint8_t *fillptr;
-	volatile uint8_t *screenptr;
+	uint8_t *lineptr;
+	uint8_t *fillptr;
+	uint8_t *screenptr;
 
 	fillptr = &line[(alt ^ 32) + char_x];
 	screenptr = &screen[screen_index];
 
 	/*
-	 * Create HSYNC. Spend 73 cycles between HIGH and LOW
+	 * Create HSYNC. Spend 73 cycles between LOW and HIGH
 	 */
-	PORTB |= (1 << PB2); // HIGH
+	PORTB &= ~(1 << PB2); // HIGH
+	__asm__ volatile(".rept 73" "\t\n" "nop" "\t\n" ".endr" "\t\n");
+	PORTB |= (1 << PB2); // LOW
 
-	// Fill in 5 chars worth of bytes
-	*fillptr++ = pgm_read_byte(0x1807 + (*screenptr++));
-	*fillptr++ = pgm_read_byte(0x1807 + (*screenptr++));
-	*fillptr++ = pgm_read_byte(0x1807 + (*screenptr++));
-	*fillptr++ = pgm_read_byte(0x1807 + (*screenptr++));
-	*fillptr++ = pgm_read_byte(0x1807 + (*screenptr++));
-
-	PORTB &= ~(1 << PB2); // LOW
-
-	if (vline == 464) PORTB &= ~(1 << PB0);
-	if (vline == 462) PORTB |= (1 << PB0);
+	if (vline == 464) PORTB |= (1 << PB0);
+	if (vline == 462) PORTB &= ~(1 << PB0);
 	vline++;
 
 	if (vline > VMAX) {
@@ -67,17 +60,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -88,17 +72,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -109,17 +84,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -130,17 +96,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -151,17 +108,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -172,17 +120,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -193,17 +132,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -214,17 +144,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -235,17 +156,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -256,17 +168,8 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-	USICR |= (1 << USICLK);
-
-	USIDR = *lineptr++;
-	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
@@ -277,6 +180,11 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 
 	USIDR = *lineptr++;
@@ -284,7 +192,62 @@ ISR(TIM1_COMPA_vect) {
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
 	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
 	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = *lineptr++;
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+	USICR |= (1 << USICLK);
+
+	USIDR = 0;
 
 	char_x += 8;
 
@@ -323,7 +286,14 @@ int main(void) {
 	// Enable interrupts
 	sei();
 
-	for(uint8_t i = 0; i < 64; i++) line[i] = 0;
+	for(uint8_t i = 0; i < 32; i = i + 2) {
+		line[i] = 0xA8;
+		line[i + 1] = 0x50;
+	}
+	for(uint8_t i = 32; i < 64; i = i + 2) {
+		line[i + 1] = 0xA8;
+		line[i] = 0x50;		
+	}
 
 	for(;;) sleep_mode();
 }
