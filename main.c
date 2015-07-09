@@ -11,7 +11,7 @@
 
 volatile uint16_t vline = 464;
 volatile uint8_t line[64] = {};
-volatile unsigned char screen[384] = // {};
+volatile unsigned char screen[384] =
 	{
 	" Hello world!! This is Attiny85 "
 	" displaying 32x12 characters on "
@@ -41,12 +41,12 @@ ISR(TIM1_COMPA_vect) {
 	/*
 	 * Create HSYNC. Spend 73 cycles between LOW and HIGH
 	 */
-	PORTB &= ~(1 << PB2); // HIGH
+	PORTB &= ~(1 << PB2); // HSYNC HIGH
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 		__asm__ volatile(".rept 28" "\t\n" "nop" "\t\n" ".endr" "\t\n" ); // Do something more in here??? :)
-	PORTB |= (1 << PB2); // LOW
+	PORTB |= (1 << PB2); // HSYNC LOW
 
 	if (++vline > VMAX ) {
 		if (vline == 525) {
