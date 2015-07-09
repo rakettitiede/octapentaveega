@@ -8,19 +8,21 @@
 #include "font.h"
 
 volatile uint8_t line[64] = {};
-volatile unsigned char screen[384] = {};
-	// "Hello world. This is Attiny85   "
-	// "displaying 32x12 characters on  "
-	// "VGA with pure bitbang goodness.."
-	// "      (C) 2015 by //Jartza      "
-	// "--------------------------------"
-	// "Here be dragons!    BEWARE!!!!!!"
-	// "--------------------------------"
-	// "            Rakettitiede rocks! "
-	// "Rakettitiede rocks!             "
-	// "================================"
-	// "abcdefghijklmnoprstuvwxyz1234567"
-	// "890,.-!\"#$%&/()+-ABCDEFGHIJKLMNO"	
+volatile unsigned char screen[384] = // {};
+	{
+	" Hello world!! This is Attiny85 "
+	" displaying 32x12 characters on "
+	" VGA with heavy USI misusage... "
+	"      (C) 2015 by //Jartza      "
+	"\x05\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x04"
+	"\x06  Here be dragons! BEWARE!!!  \x06"
+	"\x02\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x03"
+	"            Rakettitiede rocks! "
+	"Rakettitiede rocks!             "
+	"\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
+	"abcdefghijklmnoprstuvwxyz1234567"
+	"890,.-!\"#$%&/()+-ABCDEFGHIJKLMNO"	
+	};
 
 volatile uint16_t vline = 464;
 
@@ -294,7 +296,7 @@ int main(void) {
 	// Sleep mode
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
-	for(uint16_t i = 0; i < 384; i++) screen[i] = (uint8_t) i;
+//	for(uint16_t i = 0; i < 384; i++) screen[i] = (uint8_t) i;
 
 	// Enable interrupts
 	sei();
