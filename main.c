@@ -33,9 +33,10 @@ register uint8_t font_line __asm__("r2");
 register uint8_t alt __asm__("r3");
 register uint8_t alt_cnt __asm__("r4");
 register uint8_t char_x __asm__("r16");
+register uint16_t scr_buf_off __asm__("r24");
 
 ISR(TIM1_COMPA_vect) {
-	static uint16_t scr_buf_off = 0;
+//	static uint16_t scr_buf_off = 0;
 	uint8_t *lineptr;
 	uint8_t *fillptr = (uint8_t *)&line[(alt ^ 32) + char_x];
 	uint8_t *screenptr = (uint8_t *)&screen[scr_buf_off + char_x];
@@ -49,7 +50,7 @@ ISR(TIM1_COMPA_vect) {
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
+		__asm__ volatile(".rept 8" "\t\n" "nop" "\t\n" ".endr" "\t\n" ); // Do something more in here??? :)
 	PORTB |= (1 << PB2); // LOW
 
 	if (++vline > VMAX ) {
@@ -75,6 +76,7 @@ ISR(TIM1_COMPA_vect) {
 		return;
 	}
 
+	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
@@ -287,6 +289,8 @@ ISR(TIM1_COMPA_vect) {
 			font_addr = 0x1800;
 		}
 	}
+
+	__asm__ volatile(".rept 5" "\t\n" "nop" "\t\n" ".endr" "\t\n" );
 }
 
 int main(void) {
