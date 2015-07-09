@@ -17,7 +17,7 @@ FUSES      = -U lfuse:w:0xff:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
 PROGRAMMER = -c usbasp
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
-COMPILE = avr-gcc -Wall -Os -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
+COMPILE = avr-gcc -Wall -Os -flto -std=gnu99 -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
 
 # Place font data to specific address
 LDFLAGS = \

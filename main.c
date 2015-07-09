@@ -20,8 +20,8 @@ volatile unsigned char screen[384] = // {};
 	"            Rakettitiede rocks! "
 	"Rakettitiede rocks!             "
 	"\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
-	"abcdefghijklmnoprstuvwxyz1234567"
-	"890,.-!\"#$%&/()+-ABCDEFGHIJKLMNO"	
+	"abcdefghijklmnopqrstuvwxyz123456"
+	"7890,.-!\"#$%&/()+-ABCDEFGHIJKLMN"	
 	};
 
 volatile uint16_t vline = 464;
@@ -35,8 +35,8 @@ ISR(TIM1_COMPA_vect) {
 	static uint8_t alt = 0;
 	static uint8_t alt_cnt = 0;
 	uint8_t *lineptr;
-	uint8_t *fillptr = &line[(alt ^ 32) + char_x];
-	uint8_t *screenptr = &screen[scr_buf_off + char_x];
+	uint8_t *fillptr = (uint8_t *)&line[(alt ^ 32) + char_x];
+	uint8_t *screenptr = (uint8_t *)&screen[scr_buf_off + char_x];
 	static uint16_t font_addr = 0x1800;
 
 	/*
@@ -62,7 +62,7 @@ ISR(TIM1_COMPA_vect) {
 		scr_buf_off = 0;
 		font_line = 0;
 		font_addr = 0x1800;
-		memset(&line[0], 0, 32);
+		memset((void *)&line[0], 0, 32);
 		return;
 	}
 
@@ -71,7 +71,7 @@ ISR(TIM1_COMPA_vect) {
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	char_x += 8;
 
-	lineptr = &line[alt];
+	lineptr = (uint8_t *)&line[alt];
 
 	USIDR = *lineptr++;
 	USICR |= (1 << USICLK);
