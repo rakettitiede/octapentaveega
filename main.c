@@ -7,6 +7,9 @@
 #include <stdint.h>
 #include "font.h"
 
+#define VMAX 388
+
+volatile uint16_t vline = 464;
 volatile uint8_t line[64] = {};
 volatile unsigned char screen[384] = // {};
 	{
@@ -24,10 +27,6 @@ volatile unsigned char screen[384] = // {};
 	"abcdefghijklmnopqrstuvwxyz123456"
 	"7890,.-!\"#$%&/()+-ABCDEFGHIJKLMN"	
 	};
-
-volatile uint16_t vline = 464;
-
-#define VMAX 388
 
 register uint8_t font_line __asm__("r2");
 register uint8_t alt __asm__("r3");
@@ -50,7 +49,7 @@ ISR(TIM1_COMPA_vect) {
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 		*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-		__asm__ volatile(".rept 8" "\t\n" "nop" "\t\n" ".endr" "\t\n" ); // Do something more in here??? :)
+		__asm__ volatile(".rept 19" "\t\n" "nop" "\t\n" ".endr" "\t\n" ); // Do something more in here??? :)
 	PORTB |= (1 << PB2); // LOW
 
 	if (++vline > VMAX ) {
@@ -81,6 +80,8 @@ ISR(TIM1_COMPA_vect) {
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	char_x += 8;
+
+	__asm__ volatile(".rept 9" "\t\n" "nop" "\t\n" ".endr" "\t\n" );
 
 	lineptr = (uint8_t *)&line[alt];
 
@@ -289,8 +290,6 @@ ISR(TIM1_COMPA_vect) {
 			font_addr = 0x1800;
 		}
 	}
-
-	__asm__ volatile(".rept 5" "\t\n" "nop" "\t\n" ".endr" "\t\n" );
 }
 
 int main(void) {
@@ -312,8 +311,7 @@ int main(void) {
 	// Enable interrupts
 	sei();
 
-	for(;;) {
-		sleep_mode();
-	}
+	// Never do anything in main, hence we dare to reserve registers for only ISR
+	for(;;) sleep_mode();
 }
 
