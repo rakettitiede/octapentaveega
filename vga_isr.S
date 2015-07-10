@@ -88,7 +88,7 @@ TIM1_COMPA_vect:
 		add ZL, r16
 		adc ZH, r1
 
-		ld r16, Z
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -96,7 +96,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+1
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -104,7 +104,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+2
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -112,7 +112,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+3
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -120,7 +120,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+4
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -128,7 +128,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+5
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -136,7 +136,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+6
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -144,7 +144,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+7
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -152,7 +152,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+8
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -160,7 +160,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+9
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -168,7 +168,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+10
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -176,7 +176,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+11
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -184,7 +184,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+12
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -192,7 +192,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+13
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -200,7 +200,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+14
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -208,7 +208,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+15
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -216,7 +216,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+16
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -224,7 +224,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+17
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -232,7 +232,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+18
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -240,7 +240,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+19
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -248,7 +248,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+20
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -256,7 +256,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+21
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -264,7 +264,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+22
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -272,7 +272,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+23
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -280,7 +280,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+24
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -288,7 +288,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+25
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -296,7 +296,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+26
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -304,7 +304,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+27
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -312,7 +312,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+28
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -320,7 +320,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+29
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -328,7 +328,7 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+30
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
@@ -336,13 +336,15 @@ TIM1_COMPA_vect:
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 
-		ldd r16, Z+31
+		ld r16, Z+
 		out USIDR, r16
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 		sbi USICR, USICLK
 		sbi USICR, USICLK
+
+		out USIDR, r1
 
 		lds r17, altcnt
 		dec r17
