@@ -13,7 +13,13 @@
 DEVICE     = attiny85
 CLOCK      = 20000000
 OBJECTS    = main.o
-FUSES      = -U lfuse:w:0xff:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
+
+# Fuses for external chrystal
+# FUSES      = -B12 -U lfuse:w:0xff:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m
+
+# Fuses for external clock
+FUSES      = -B12 -U lfuse:w:0xe0:m -U hfuse:w:0xd7:m -U efuse:w:0xff:m
+
 PROGRAMMER = -c usbasp
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
