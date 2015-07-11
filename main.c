@@ -329,6 +329,14 @@ int main(void) {
 	// Give slaves time to set up
 	_delay_ms(500);
 
+
+	uint8_t bits = 1;
+	for(uint8_t i = 0; i < 64; i++) {
+		if (bits++ & 4) screen[320 + i] = 65 + i;
+			else screen[320 + i] = 32;
+		if (bits == 7) bits = 1;
+	}
+
 	// Enable interrupts
 	sei();
 
