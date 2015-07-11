@@ -326,6 +326,9 @@ int main(void) {
 	// Sleep mode
 	set_sleep_mode(SLEEP_MODE_IDLE);
 
+	// Give slaves time to set up
+	_delay_ms(500);
+
 	// Enable interrupts
 	sei();
 
