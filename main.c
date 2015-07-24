@@ -36,29 +36,11 @@ register uint8_t char_x __asm__("r16");
 register uint16_t scr_buf_off __asm__("r24");
 
 ISR(TIM1_COMPA_vect) {
-	uint8_t *lineptr;
-	uint8_t *fillptr = (uint8_t *)&line[(alt ^ 32) + char_x];
-	uint8_t *screenptr = (uint8_t *)&screen[scr_buf_off + char_x];
 	static uint16_t font_addr = 0x1800;
-
-	/*
-	 * Create HSYNC. Spend 73 cycles between LOW and HIGH
-	 */
-	PORTB &= ~(1 << PB2); // HSYNC HIGH
-
-	// Fetch and fill 3 bytes for next drawable line
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-
-	// This is for timing.
-	__asm__ volatile(".rept 28" "\t\n" "nop" "\t\n" ".endr" "\t\n" ); // TODO: use this to UART?
-	
-	PORTB |= (1 << PB2); // HSYNC LOW
 
 	// Create VSYNC pulses and also exit asap if we're
 	// outside screen-visible area (to save clock cycles)
-	if (++vline > VMAX ) {
+	if (++vline > VMAX) {
 		if (vline == 525) {
 			vline = 0;
 			alt_cnt = 0;
@@ -81,7 +63,14 @@ ISR(TIM1_COMPA_vect) {
 		return;
 	}
 
-	// Fetch and fill 5 more bytes for next drawable line
+	uint8_t *lineptr;
+	uint8_t *fillptr = (uint8_t *)&line[(alt ^ 32) + char_x];
+	uint8_t *screenptr = (uint8_t *)&screen[scr_buf_off + char_x];
+
+	// Fetch and fill 8 bytes for next drawable line
+	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
+	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
+	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
@@ -311,7 +300,7 @@ ISR(TIM1_COMPA_vect) {
 }
 
 int main(void) {
-	DDRB |= (1 << PB0) | (1 << PB1) | (1 << PB2);
+	DDRB |= (1 << PB0) | (1 << PB1) | (1 << PB2) | (1 << PB4);
 	PORTB |= (1 << PB0) | (1 << PB1) | (1 << PB2);
 	USICR = (1 << USIWM0);
 
@@ -319,7 +308,9 @@ int main(void) {
 
 	// HSYNC timer. Prescaler 4, Compare value = 159 = 31.8us
 	TCCR1 = (1 << CTC1) | (1 << CS10) | (1 << CS11);
-	OCR1A = 158;
+    GTCCR = 1 << PWM1B | 1 << COM1B1;
+	OCR1A = 152;
+	OCR1B = 18;
 	OCR1C = 158;
 	TIMSK |= (1 << OCIE1A);
 
