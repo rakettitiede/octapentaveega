@@ -36,7 +36,7 @@ register uint8_t char_x __asm__("r16");
 register uint16_t scr_buf_off __asm__("r24");
 
 ISR(TIM1_COMPA_vect) {
-	static uint16_t font_addr = 0x1800;
+	static uint8_t font_addr = 0x18;
 
 	// Create VSYNC pulses and also exit asap if we're
 	// outside screen-visible area (to save clock cycles)
@@ -48,7 +48,7 @@ ISR(TIM1_COMPA_vect) {
 			char_x = 0;
 			scr_buf_off = 0;
 			font_line = 0;
-			font_addr = 0x1800;
+			font_addr = 0x18;
 			memset((void *)&line[0], 0, 32);
 			return;
 		}
@@ -68,14 +68,14 @@ ISR(TIM1_COMPA_vect) {
 	uint8_t *screenptr = (uint8_t *)&screen[scr_buf_off + char_x];
 
 	// Fetch and fill 8 bytes for next drawable line
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
-	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
+	*fillptr++ = pgm_read_byte((font_addr << 8) + (*screenptr++));
+	*fillptr++ = pgm_read_byte((font_addr << 8) + (*screenptr++));
+	*fillptr++ = pgm_read_byte((font_addr << 8) + (*screenptr++));
+	*fillptr++ = pgm_read_byte((font_addr << 8) + (*screenptr++));
+	*fillptr++ = pgm_read_byte((font_addr << 8) + (*screenptr++));
+	*fillptr++ = pgm_read_byte((font_addr << 8) + (*screenptr++));
+	*fillptr++ = pgm_read_byte((font_addr << 8) + (*screenptr++));
+	*fillptr++ = pgm_read_byte((font_addr << 8) + (*screenptr++));
 	char_x += 8;
 
 	// Fetch the address to predrawn data
@@ -290,11 +290,11 @@ ISR(TIM1_COMPA_vect) {
 		alt_cnt = 0;
 		char_x = 0;
 		alt ^= 32;
-		font_addr += 0x100;
+		font_addr++;
 		if (++font_line == 0x08) {
 			font_line = 0;
 			scr_buf_off += 32;
-			font_addr = 0x1800;
+			font_addr = 0x18;
 		}
 	}
 }
