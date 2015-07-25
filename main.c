@@ -10,15 +10,14 @@
 #define VMAX 388
 
 volatile uint16_t vline = 464;
-volatile uint8_t line[64] = {};
 volatile unsigned char screen[384] =
 	{
 	" Hello world!! This is Attiny85 "
 	" displaying 32x12 characters on "
-	" VGA with colors ....  OL RS YEA"
+	" VGA with 5x8 pixel characters. "
 	"      (C) 2015 by //Jartza      "
 	" \x05\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x04"
-	"\x05\x03                  BEWARE!!! \x05\x03"
+	"\x05\x03 HERE BE DRAGONS! BEWARE!!! \x05\x03"
 	"\x02\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x03"
 	"D\xce\xef\xa0\xc1\xf4\xf4\xe9\xee\xf9\xf3\xa0\xe8\xe1\xf6\xe5\xa0\xe2\xe5\xe5\xee\xa0\xef\xf6\xe5\xf2\xe3\xec\xef\xe3\xeb\xe5\xe4\xe4\xf5\xf2\xe9\xee\xe7\xa0\xf4\xe8\xe9\xf3\xa0\xf0\xf2\xef\xea\xe5\xe3\xf4\xa0\xa8\xf2\xf5\xee\xa0\xc0\xb2\xb0\xcd\xc8\xfa\xa9"
 	"\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01\x01"
@@ -36,7 +35,9 @@ register uint8_t char_x __asm__("r16");
 register uint16_t scr_buf_off __asm__("r24");
 
 ISR(TIM1_COMPA_vect) {
+	static uint8_t line[64] = {};
 	static uint16_t font_addr = 0x1800;
+	static uint8_t* font_high = (uint8_t *) (&font_addr) + 1;
 
 	// Create VSYNC pulses and also exit asap if we're
 	// outside screen-visible area (to save clock cycles)
@@ -48,7 +49,7 @@ ISR(TIM1_COMPA_vect) {
 			char_x = 0;
 			scr_buf_off = 0;
 			font_line = 0;
-			font_addr = 0x1800;
+			(*font_high) = 0x18;
 			memset((void *)&line[0], 0, 32);
 			return;
 		}
@@ -63,11 +64,13 @@ ISR(TIM1_COMPA_vect) {
 		return;
 	}
 
+	// Fetch and fill 8 bytes to buffer for next drawable line.
+	// Each horizontal line is drawn 4 times, so we get full 32 bytes
+	// for next horizontal line this way
 	uint8_t *lineptr;
 	uint8_t *fillptr = (uint8_t *)&line[(alt ^ 32) + char_x];
 	uint8_t *screenptr = (uint8_t *)&screen[scr_buf_off + char_x];
 
-	// Fetch and fill 8 bytes for next drawable line
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
 	*fillptr++ = pgm_read_byte(font_addr + (*screenptr++));
@@ -290,11 +293,11 @@ ISR(TIM1_COMPA_vect) {
 		alt_cnt = 0;
 		char_x = 0;
 		alt ^= 32;
-		font_addr += 0x100;
+		(*font_high)++;
 		if (++font_line == 0x08) {
 			font_line = 0;
 			scr_buf_off += 32;
-			font_addr = 0x1800;
+			(*font_high) = 0x18;
 		}
 	}
 }
@@ -309,8 +312,8 @@ int main(void) {
 	// HSYNC timer. Prescaler 4, Compare value = 159 = 31.8us
 	TCCR1 = (1 << CTC1) | (1 << CS10) | (1 << CS11);
     GTCCR = 1 << PWM1B | 1 << COM1B1;
-	OCR1A = 152;
-	OCR1B = 18;
+	OCR1A = 130;
+	OCR1B = 139;
 	OCR1C = 158;
 	TIMSK |= (1 << OCIE1A);
 
@@ -323,8 +326,9 @@ int main(void) {
 
 	uint8_t bits = 1;
 	for(uint8_t i = 0; i < 64; i++) {
-		if (bits++ & 4) screen[320 + i] = 65 + i;
-			else screen[320 + i] = 32;
+		// if (bits++ & 4) screen[320 + i] = 65 + i;
+		// 	else screen[320 + i] = 32;
+		screen[320 + i] = 65 + i;
 		if (bits == 7) bits = 1;
 	}
 
