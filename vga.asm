@@ -1,15 +1,15 @@
 .include "tn85def.inc"
 .include "font.inc"
 
-.def zero		= r0
-.def one		= r1
-.def alt		= r2
-.def loop_1		= r3
-.def loop_2		= r4
-.def temp		= r16 
-.def eorval		= r17
+.def zero	= r0
+.def one	= r1
+.def alt	= r2
+.def loop_1	= r3
+.def loop_2	= r4
+.def temp	= r16 
+.def eorval	= r17
 .def font_hi	= r18
-.def char_x		= r19
+.def char_x	= r19
 .def vline_lo	= r20
 .def vline_hi	= r21
 .def alt_cnt	= r22
@@ -46,10 +46,10 @@ vectors:
 main:
 	; Set default values to registers
 	;
-	clr zero						; Zero the zero-register
+	clr zero		; Zero the zero-register
 	clr one
-	inc one							; Register to hold value 1
-	ldi eorval, 32					; Buffer XORing value
+	inc one			; Register to hold value 1
+	ldi eorval, 32		; Buffer XORing value
 
 	; Set GPIO directions
 	;
@@ -143,10 +143,10 @@ check_visible:
 	; Check if we are in visible screen area or in vertical blanking
 	; area of the screen
 	;
-	add vline_lo, one		; Increase vertical line counter
-	adc vline_hi, zero		; Increase high byte
-	cpi vline_lo, 0xC4		; Visible area low byte (452)
-	cpc vline_hi, one		; Visible area high byte (452)
+	add vline_lo, one	; Increase vertical line counter
+	adc vline_hi, zero	; Increase high byte
+	cpi vline_lo, 0xC4	; Visible area low byte (452)
+	cpc vline_hi, one	; Visible area high byte (452)
 	brlo visible_area
 	rjmp vertical_blank
 
@@ -159,16 +159,16 @@ visible_area:
 	;
 	ldi YL, low(drawbuf)	; Get predraw buffer address
 	ldi YH, high(drawbuf)	; to Y register by alternating
-	eor alt, eorval			; alt with eorval and adding
-	add YL, alt				; to buffer address, also
-	add YL, char_x			; add x-offset
-	mov ZH, font_hi			; Font flash high byte
+	eor alt, eorval		; alt with eorval and adding
+	add YL, alt		; to buffer address, also
+	add YL, char_x		; add x-offset
+	mov ZH, font_hi		; Font flash high byte
 
 	; Fetch characters using macro, unrolled 8 times
 	.macro fetch_char
-		ld ZL, X+			; Load character from screen buffer to ZL
-		lpm temp, Z			; and fetch font byte from flash
-		st Y+, temp			; then store it to predraw buffer
+		ld ZL, X+	; Load char from screen buffer (X) to ZL
+		lpm temp, Z	; and fetch font byte from flash (Z)
+		st Y+, temp	; then store it to predraw buffer (Y)
 	.endmacro
 
 	fetch_char
@@ -191,8 +191,8 @@ visible_area:
 	;
 	ldi YL, low(drawbuf)	; Get current draw buffer address
 	ldi YH, high(drawbuf)	; to Y register. Notice we don't add
-	eor alt, eorval			; the high byte as we've reserved the
-	add YL, alt				; buffer from low 256 byte space
+	eor alt, eorval		; the high byte as we've reserved the
+	add YL, alt		; buffer from low 256 byte space
 
 	.macro draw_char
 		ld temp, Y+
@@ -238,8 +238,9 @@ visible_area:
 	draw_char
 
 	; Make sure we don't draw to porch
-	nop
-	out USIDR, zero
+	;
+	nop			; Wait for last pixel a while
+	out USIDR, zero		; Zero USI data register
 
 check_housekeep:
 	; Time to do some housekeeping if we
@@ -254,10 +255,11 @@ housekeeping:
 	; Advance to next line, alternate buffers
 	; and do some other housekeeping after pixels
 	; have been drawn
-	clr alt_cnt			; Reset drawn line counter
-	clr char_x			; Reset offset in predraw buffer
+	;
+	clr alt_cnt		; Reset drawn line counter
+	clr char_x		; Reset offset in predraw buffer
 	eor alt, eorval		; Alternate between buffers
-	inc font_hi			; Increase font line
+	inc font_hi		; Increase font line
 
 	; Check if we have drawn one character line
 	cpi font_hi, 0x20
@@ -272,26 +274,26 @@ housekeep_done:
 vertical_blank:
 	; Check if we need to switch VSYNC low
 	;
-	cpi vline_lo, 0xCE		; Low (462)
-	cpc vline_hi, one		; High (462)
+	cpi vline_lo, 0xCE	; Low (462)
+	cpc vline_hi, one	; High (462)
 	brne check_vsync_off
-	cbi PORTB, PB0			; Vsync low
+	cbi PORTB, PB0		; Vsync low
 	rjmp wait_hsync
 
 check_vsync_off:
 	; Check if we need to switch VSYNC high
 	;
-	cpi vline_lo, 0xD0		; Low (464)
-	cpc vline_hi, one		; High (464)
+	cpi vline_lo, 0xD0	; Low (464)
+	cpc vline_hi, one	; High (464)
 	brne check_vlines
-	sbi PORTB, PB0			; Vsync high
+	sbi PORTB, PB0		; Vsync high
 	rjmp wait_hsync
 
 check_vlines:
 	; Have we done 525 lines?
 	;
-	ldi temp, 2			; High byte (525)
-	cpi vline_lo, 0x0D		; Low (525)
+	ldi temp, 2		; High byte (525)
+	cpi vline_lo, 0x0D	; Low (525)
 	cpc vline_hi, temp	; High (525)
 	breq screen_done
 
@@ -309,9 +311,9 @@ screen_done:
 	clr alt
 	clr alt_cnt
 	clr char_x
-	ldi XL, low(screenbuf)		; Pointer to start of 
-	ldi XH, high(screenbuf)		; screen buffer
-	ldi font_hi, 0x18			; Font flash addr high byte
+	ldi XL, low(screenbuf)	; Pointer to start of 
+	ldi XH, high(screenbuf)	; the screen buffer
+	ldi font_hi, 0x18	; Font flash addr high byte
 
 clear_drawbuf:
 	; Write zeroes to line buffer
@@ -327,4 +329,3 @@ drawbuf_clear_loop:
 	dec temp
 	brne drawbuf_clear_loop
 	rjmp wait_hsync
-
