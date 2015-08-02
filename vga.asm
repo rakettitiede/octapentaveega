@@ -36,23 +36,6 @@ screenbuf:
 .cseg
 .org 0x00
 
-vectors:
-    rjmp main
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-    rjmp vectors
-
 main:
 	; Set default values to registers
 	;
