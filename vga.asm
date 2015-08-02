@@ -1,3 +1,13 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                      ;;
+;; 32 x 14 character VGA output with UART for Attiny85. ;;
+;;                                                      ;;
+;; (C) Jari Tulilahti 2015. All right and deserved.     ;;
+;;                                                      ;;
+;;     //Jartza                                         ;;
+;;                                                      ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 .include "tn85def.inc"
 .include "font.inc"
 
