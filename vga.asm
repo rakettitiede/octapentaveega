@@ -29,16 +29,14 @@
 .def uart_eor	= r5	; XOR-value to UART sequencing
 .def uart_seq	= r6	; UART sequence
 .def uart_next	= r7	; Next UART sequence
-.def scr_ind_lo	= r8	; UART -> screenbuffer index low byte
-.def scr_ind_hi	= r9	; UART -> screenbuffer index high byte
-.def loop_1	= r14	; TODO: Remove when done
-.def loop_2	= r15	; TODO: Remove when done
 .def temp	= r16	; Temporary register
 .def font_hi	= r17	; Font Flash addr high byte
 .def vline_lo	= r18	; Vertical line low byte
 .def vline_hi	= r19	; Vertical line high byte
 .def alt_cnt	= r20	; Buffer alternating counter
 .def uart_byte	= r21	; UART "buffer"
+.def scr_ind_lo	= r24	; UART -> screenbuffer index low byte
+.def scr_ind_hi	= r25	; UART -> screenbuffer index high byte
 
 ; Some constant values
 ;
@@ -93,25 +91,7 @@ main:
 	;
 	sbi USICR, USIWM0
 
-fillscreen:
-	; TODO: Remove. Just for testing
-	clr loop_1
-	clr loop_2
-	clr char_x
-	ldi YL, low(screenbuf)
-	ldi YH, high(screenbuf)
-filloop:
-	ldi temp, 1
-	st Y+, char_x
-	inc char_x
-	add loop_1, temp
-	adc loop_2, zero
-	cp loop_2, temp
-	brne filloop
-	ldi temp, 192
-	cp loop_1, temp
-	brne filloop
-
+set_timers:
 	; HSYNC timer. Prescaler 4, Compare value = 159 = 31.8us
 	; We generate HSYNC pulse with PWM
 	;
@@ -217,25 +197,35 @@ uart_sample:
 handle_data:
 	; We got full byte from UART, handle it
 	;
+	cpi uart_byte, 13		; Special case: Enter
+	brne not_enter
+	andi scr_ind_lo, 224		; Beginning of line
+	adiw scr_ind_hi:scr_ind_lo, 32	; Next line
+	rjmp check_index_overflow
+
+not_enter:
 	ldi YL, low(screenbuf)	; Get screenbuffer address
 	ldi YH, high(screenbuf)	; 
 	add YL, scr_ind_lo	; Add screen index to 
 	adc YH, scr_ind_hi	; buffer address
 	st Y, uart_byte		; Store byte to screenbuffer
 
+	; Advance screen buffer index
+	;
+	add scr_ind_lo, one	; Increase vertical line counter
+	adc scr_ind_hi, zero	; Increase high byte
+
+check_index_overflow:
 	ldi temp, 60		; Sequence to wait for stop
 	mov uart_seq, temp	; bit. We also put temp data
 	mov uart_byte, temp	; in UART buffer (skip start detect)
 
-	; Advance screen buffer index and check if
-	; it overflows
+	; Check if screen index has overflown and reset
 	;
-	add scr_ind_lo, one	; Increase vertical line counter
-	adc scr_ind_hi, zero	; Increase high byte
 	ldi temp, 0xC0
 	cp scr_ind_lo, temp	; Compare low (448)
 	cpc scr_ind_hi, one	; Compare high (448)
-	brne wait_hsync		; No overflow
+	brlo wait_hsync		; No overflow, wait hsync
 	clr scr_ind_hi		; Clear hi
 	clr scr_ind_lo		; Clear low
 
