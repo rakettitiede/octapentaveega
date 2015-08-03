@@ -240,8 +240,9 @@ check_housekeep:
 	; Time to do some housekeeping if we
 	; have drawn the current line 4 times
 	;
-	dec alt_cnt
-	brne housekeeping
+	inc alt_cnt
+	cpi alt_cnt, 4
+	breq housekeeping
 	rjmp wait_hsync		; Return to HSYNC waiting
 
 housekeeping:
@@ -249,7 +250,7 @@ housekeeping:
 	; and do some other housekeeping after pixels
 	; have been drawn
 	;
-	ldi alt_cnt, 4		; Reset drawn line counter
+	clr alt_cnt		; Reset drawn line counter
 	clr char_x		; Reset offset in predraw buffer
 	eor alt, eorval		; Alternate between buffers
 	inc font_hi		; Increase font line
@@ -302,7 +303,7 @@ screen_done:
 	clr vline_lo
 	clr vline_hi
 	clr alt
-	ldi alt_cnt, 4
+	clr alt_cnt
 	clr char_x
 	ldi XL, low(screenbuf)	; Pointer to start of 
 	ldi XH, high(screenbuf)	; the screen buffer
