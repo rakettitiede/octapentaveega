@@ -172,8 +172,8 @@ uart_handling:
 	; Start detected, set values to registers
 	;
 	ldi uart_byte, 0x80	; C flag set when byte received
-	ldi temp, 48		; First sequence after start
-	mov uart_seq, temp	; bit is 5 HSYNC cycles
+	ldi temp, 24		; First sequence after start
+	mov uart_seq, temp	; bit is 4 HSYNC cycles
 	ldi temp, 100		; Next sequence will be
 	mov uart_next, temp	; 3 and 3 cycles
 	rjmp wait_hsync		; Start bit handling done
@@ -259,8 +259,9 @@ jitterfix:
 	ijmp
 
 jitternop:
-	; If timer start value is good, we jump over 0-3 nops
+	; If timer start value is good, we jump over 0-4 nops
 	;
+	nop
 	nop
 	nop
 	nop
