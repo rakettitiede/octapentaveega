@@ -24,8 +24,8 @@
 .def vline_hi	= r19
 .def alt_cnt	= r20
 
-.equ HSYNC_WAIT	= 150
-.equ JITTERVAL	= 46
+.equ HSYNC_WAIT	= 157
+.equ JITTERVAL	= 18
 
 .dseg
 
@@ -268,8 +268,8 @@ housekeep_done:
 vertical_blank:
 	; Check if we need to switch VSYNC low
 	;
-	cpi vline_lo, 0xCE	; Low (462)
-	cpc vline_hi, one	; High (462)
+	cpi vline_lo, 0xDE	; Low
+	cpc vline_hi, one	; High
 	brne check_vsync_off
 	cbi PORTB, PB0		; Vsync low
 	rjmp wait_hsync
@@ -277,8 +277,8 @@ vertical_blank:
 check_vsync_off:
 	; Check if we need to switch VSYNC high
 	;
-	cpi vline_lo, 0xD0	; Low (464)
-	cpc vline_hi, one	; High (464)
+	cpi vline_lo, 0xE0	; Low
+	cpc vline_hi, one	; High
 	brne check_vlines
 	sbi PORTB, PB0		; Vsync high
 	rjmp wait_hsync
