@@ -24,7 +24,8 @@
 .def vline_hi	= r19
 .def alt_cnt	= r20
 
-.equ HSYNC_WAIT	= 140
+.equ HSYNC_WAIT	= 150
+.equ JITTERVAL	= 46
 
 .dseg
 
@@ -99,7 +100,7 @@ filloop:
 	out TCCR0B, temp
 	ldi temp, 158
 	out OCR0A, temp
-	ldi temp, 86
+	ldi temp, JITTERVAL
 	out TCNT0, temp
 
 	; We jump to the end of the VGA routine, setting
@@ -240,8 +241,7 @@ check_housekeep:
 	; Time to do some housekeeping if we
 	; have drawn the current line 4 times
 	;
-	inc alt_cnt
-	cpi alt_cnt, 4
+	dec alt_cnt
 	breq housekeeping
 	rjmp wait_hsync		; Return to HSYNC waiting
 
@@ -250,7 +250,7 @@ housekeeping:
 	; and do some other housekeeping after pixels
 	; have been drawn
 	;
-	clr alt_cnt		; Reset drawn line counter
+	ldi alt_cnt, 4		; Reset drawn line counter
 	clr char_x		; Reset offset in predraw buffer
 	eor alt, eorval		; Alternate between buffers
 	inc font_hi		; Increase font line
@@ -303,7 +303,7 @@ screen_done:
 	clr vline_lo
 	clr vline_hi
 	clr alt
-	clr alt_cnt
+	ldi alt_cnt, 4
 	clr char_x
 	ldi XL, low(screenbuf)	; Pointer to start of 
 	ldi XH, high(screenbuf)	; the screen buffer
