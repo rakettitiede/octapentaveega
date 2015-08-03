@@ -16,13 +16,13 @@
 .def alt	= r2
 .def loop_1	= r3
 .def loop_2	= r4
+.def char_x	= r5
+.def eorval	= r6
 .def temp	= r16 
-.def eorval	= r17
-.def font_hi	= r18
-.def char_x	= r19
-.def vline_lo	= r20
-.def vline_hi	= r21
-.def alt_cnt	= r22
+.def font_hi	= r17
+.def vline_lo	= r18
+.def vline_hi	= r19
+.def alt_cnt	= r20
 
 .equ HSYNC_WAIT	= 140
 
@@ -42,7 +42,8 @@ main:
 	clr zero		; Zero the zero-register
 	clr one
 	inc one			; Register to hold value 1
-	ldi eorval, 32		; Buffer XORing value
+	ldi temp, 32
+	mov eorval, temp	; Buffer XORing value
 
 	; Set GPIO directions
 	;
@@ -239,9 +240,8 @@ check_housekeep:
 	; Time to do some housekeeping if we
 	; have drawn the current line 4 times
 	;
-	inc alt_cnt
-	cpi alt_cnt, 4
-	breq housekeeping
+	dec alt_cnt
+	brne housekeeping
 	rjmp wait_hsync		; Return to HSYNC waiting
 
 housekeeping:
@@ -249,7 +249,7 @@ housekeeping:
 	; and do some other housekeeping after pixels
 	; have been drawn
 	;
-	clr alt_cnt		; Reset drawn line counter
+	ldi alt_cnt, 4		; Reset drawn line counter
 	clr char_x		; Reset offset in predraw buffer
 	eor alt, eorval		; Alternate between buffers
 	inc font_hi		; Increase font line
@@ -302,7 +302,7 @@ screen_done:
 	clr vline_lo
 	clr vline_hi
 	clr alt
-	clr alt_cnt
+	ldi alt_cnt, 4
 	clr char_x
 	ldi XL, low(screenbuf)	; Pointer to start of 
 	ldi XH, high(screenbuf)	; the screen buffer
