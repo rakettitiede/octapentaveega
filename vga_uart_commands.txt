@@ -1,3 +1,8 @@
+Attiny85 VGA ISNA escape codes:
+===============================
+
+(ISNA = IS Not ANSI :)
+
 Attiny85-vga UART receiver goes into command-mode whenever
 "Escape" 0x1B (ascii 27 / ESC) character is encountered. Sending multiple ESC
 characters consecutively has same effect as sending just one.
