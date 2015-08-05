@@ -1,0 +1,38 @@
+Attiny85-vga UART receiver goes into command-mode whenever
+"Escape" 0x1B (ascii 27 / ESC) character is encountered. Sending multiple ESC
+characters consecutively has same effect as sending just one.
+
+2nd byte			command
+===========================================
+bits	7..5	4..0
+
+	000	<command>	Basic command-set, where <command> is:
+				1:	Clear screen and move
+					cursor to 0,0.
+				27:	command-mode (ESC)
+
+	001	<X>		Move cursor X-coordinate to <X> 
+				(0..31). Y-coordinate unaffected.
+
+	010	<Y>		Move cursor Y-coordinate to <Y>
+				(0..13). X-coordinate unaffected
+
+	011	<ext>		Extended command-set, where <ext> is:
+				1:	Wrap-around mode.
+					Screen will not scroll, enter 
+					(13) will not advance
+					to next line, but prints ascii
+					code 13 instead.
+				2:	Scroll-mode. Screen will scroll
+					up when text overflows from last
+					line. Enter (13) moves cursor to
+					beginning of next line.
+
+	101	<line>		Clear line number <line> (0..13), cursor is not
+				moved.
+
+	110	<color>		Change color to <color>. Color will stay selected
+				until it is changed again. Clear screen -command
+				resets the color back to default.
+
+	111	ignored		Reserved for future
