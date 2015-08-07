@@ -29,7 +29,8 @@
 .def uart_eor	= r5	; XOR-value to UART sequencing
 .def uart_seq	= r6	; UART sequence
 .def uart_next	= r7	; Next UART sequence
-.def cmd_mode	= r8 	; Mode selection
+.def clear_mode	= r8 	; Draw pixels or clear screen?
+.def clear_cnt	= r9 	; Screen clear counter
 .def temp	= r16	; Temporary register
 .def font_hi	= r17	; Font Flash addr high byte
 .def vline_lo	= r18	; Vertical line low byte
@@ -94,7 +95,7 @@ main:
 	mov uart_eor, temp	; UART sequence XORing value
 	clr scr_ind_hi		; Clear screen index high
 	clr scr_ind_lo		; Clear screen index low
-	clr cmd_mode
+	clr clear_mode
 
 	; Set GPIO directions
 	;
@@ -213,13 +214,22 @@ uart_sample:
 handle_data:
 	; We got full byte from UART, handle it
 	;
+	cpi uart_byte, 27		; Special case: ESC
+	breq handle_esc
 	cpi uart_byte, 13		; Special case: Enter
-	brne not_enter
+	breq handle_enter
+	rjmp not_special
+
+handle_esc:
+	mov clear_mode, one
+	rjmp check_index_overflow 	; a bit useless, but harmless
+
+handle_enter:
 	andi scr_ind_lo, 224		; Beginning of line
 	adiw scr_ind_hi:scr_ind_lo, 32	; Next line
 	rjmp check_index_overflow
 
-not_enter:
+not_special:
 	ldi YL, low(screenbuf)	; Get screenbuffer address
 	ldi YH, high(screenbuf)	; 
 	add YL, scr_ind_lo	; Add screen index to 
@@ -290,7 +300,7 @@ visible_area:
 	;
 	ldi ZL, low(visible_jumps)
 	ldi ZH, high(visible_jumps)
-	add ZL, cmd_mode
+	add ZL, clear_mode
 	adc ZH, zero
 	ijmp
 
@@ -301,6 +311,37 @@ visible_jumps:
 	rjmp clear_screen 	; Clear screen
 
 clear_screen:
+	mov temp, clear_cnt
+	ldi YL, low(screenbuf)
+	ldi YH, high(screenbuf)
+	sbrc temp, 4	; Check for "high bit"
+	inc YH
+	andi temp, 15
+	swap temp
+	add YL, temp
+	adc YH, zero
+
+	ldi temp, 16
+
+clear_loop:
+	st Y+, zero
+	dec temp
+	brne clear_loop
+
+	inc clear_cnt
+	ldi temp, 28
+	cp clear_cnt, temp
+	brne clear_next
+
+	clr clear_mode
+	clr scr_ind_lo
+	clr scr_ind_hi
+
+clear_next:
+	ldi XL, low(screenbuf)	; Reset the draw pointer too
+	ldi XH, high(screenbuf)	; to the beginning of buffer
+	rjmp check_housekeep	; Jump over pixel drawing
+
 
 predraw:
 	; Fetch 8 bytes for next drawable line
@@ -331,12 +372,6 @@ predraw:
 	fetch_char
 	fetch_char
 	fetch_char
-
-	; Increase predraw buffer offset by 8
-	;
-	ldi temp, 8
-	add char_x, temp
-
 	
 	; Draw pixels, pushing them out from USI. We repeat this
 	; 32 times using macro, without looping, as timing is important
@@ -395,8 +430,13 @@ predraw:
 	out USIDR, zero		; Zero USI data register
 
 check_housekeep:
-	; Time to do some housekeeping if we
-	; have drawn the current line 4 times
+	; Increase predraw buffer offset by 8
+	;
+	ldi temp, 8
+	add char_x, temp
+
+	; If we have drawn the current line 4 times,
+	; time to do some housekeeping.
 	;
 	dec alt_cnt
 	breq housekeeping
