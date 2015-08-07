@@ -222,6 +222,9 @@ handle_data:
 
 handle_esc:
 	mov clear_mode, one
+	clr scr_ind_lo
+	clr scr_ind_hi
+	clr clear_cnt
 	rjmp check_index_overflow 	; a bit useless, but harmless
 
 handle_enter:
@@ -238,8 +241,7 @@ not_special:
 
 	; Advance screen buffer index
 	;
-	add scr_ind_lo, one	; Increase vertical line counter
-	adc scr_ind_hi, zero	; Increase high byte
+	adiw scr_ind_hi:scr_ind_lo, 1
 
 check_index_overflow:
 	ldi temp, 60		; Sequence to wait for stop
@@ -311,6 +313,19 @@ visible_jumps:
 	rjmp clear_screen 	; Clear screen
 
 clear_screen:
+	; Start clearing the screen
+	; First line is handled specially as we might have some data in buffer
+	cp clear_cnt, zero
+	brne clear_notzero
+	ldi YL, low(screenbuf)
+	ldi YH, high(screenbuf)
+	add YL, scr_ind_lo	; Add screen index to 
+	adc YH, scr_ind_hi	; buffer address
+	ldi temp, 16
+	sub temp, scr_ind_lo
+	rjmp clear_loop
+
+clear_notzero:
 	mov temp, clear_cnt
 	ldi YL, low(screenbuf)
 	ldi YH, high(screenbuf)
@@ -323,6 +338,10 @@ clear_screen:
 
 	ldi temp, 16
 
+	; On first row, check if we've received something
+	; to first line
+	;
+
 clear_loop:
 	st Y+, zero
 	dec temp
@@ -334,12 +353,9 @@ clear_loop:
 	brne clear_next
 
 	clr clear_mode
-	clr scr_ind_lo
-	clr scr_ind_hi
 
 clear_next:
-	ldi XL, low(screenbuf)	; Reset the draw pointer too
-	ldi XH, high(screenbuf)	; to the beginning of buffer
+	adiw XH:XL, 8
 	rjmp check_housekeep	; Jump over pixel drawing
 
 
