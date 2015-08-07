@@ -41,11 +41,18 @@
 
 ; Some constant values
 ;
-.equ UART_WAIT	= 129
-.equ HSYNC_WAIT	= 157
-.equ JITTERVAL	= 8
+.equ UART_WAIT	= 129	; HSYNC timer value where we start looking
+			; for UART samples (or handle received data)
+.equ HSYNC_WAIT	= 157	; Here we start precalculating the pixels
+			; and drawing to screen
+.equ JITTERVAL	= 8	; This must be synced with HSYNC_WAIT value.
+			; We want Timer0 counter to be 0-4 in
+			; jitterfix label. I used AVR Studio simulator
+			; to sync this value
 
-.equ UART_PIN	= PB0
+; Pins used for different signals
+;
+.equ UART_PIN	= PB0	
 .equ RGB_PIN	= PB1
 .equ VSYNC_PIN	= PB2
 .equ HSYNC_PIN	= PB4
@@ -64,6 +71,13 @@ drawbuf:
 	.byte 64
 screenbuf:
 	.byte 448
+screen_end:
+
+; Start the code section. We don't have any
+; vectors, instead our main starts at 0x00.
+; Also stack is not used, so stack address
+; is undefined.
+;
 
 .cseg
 .org 0x00
