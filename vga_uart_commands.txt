@@ -33,11 +33,12 @@ bits	7..5	4..0
 					line. Enter (13) moves cursor to
 					beginning of next line.
 
-	101	<line>		Clear line number <line> (0..13), cursor is not
-				moved.
+	101	<line>		Clear line number <line> (0..13), cursor is
+				not moved.
 
-	110	<color>		Change color to <color>. Color will stay selected
-				until it is changed again. Clear screen -command
-				resets the color back to default.
+	110	<color>		Change color to <color>. Color will stay
+				selected until it is changed again. Clear 
+				screen -command resets the color back to
+				default.
 
 	111	ignored		Reserved for future

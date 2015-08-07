@@ -29,6 +29,7 @@
 .def uart_eor	= r5	; XOR-value to UART sequencing
 .def uart_seq	= r6	; UART sequence
 .def uart_next	= r7	; Next UART sequence
+.def cmd_mode	= r8 	; Mode selection
 .def temp	= r16	; Temporary register
 .def font_hi	= r17	; Font Flash addr high byte
 .def vline_lo	= r18	; Vertical line low byte
@@ -40,7 +41,7 @@
 
 ; Some constant values
 ;
-.equ UART_WAIT	= 128
+.equ UART_WAIT	= 129
 .equ HSYNC_WAIT	= 157
 .equ JITTERVAL	= 8
 
@@ -79,6 +80,7 @@ main:
 	mov uart_eor, temp	; UART sequence XORing value
 	clr scr_ind_hi		; Clear screen index high
 	clr scr_ind_lo		; Clear screen index low
+	clr cmd_mode
 
 	; Set GPIO directions
 	;
@@ -268,7 +270,26 @@ check_visible:
 	rjmp vertical_blank
 
 visible_area:
-	; We are in visible area. Fetch 8 bytes for next drawable line
+	; We are in visible area. Select if we actually draw pixels
+	; or not. If we are clearing the screen, no need to draw 
+	; pixels and we save cycles.
+	;
+	ldi ZL, low(visible_jumps)
+	ldi ZH, high(visible_jumps)
+	add ZL, cmd_mode
+	adc ZH, zero
+	ijmp
+
+visible_jumps:
+	; Jump table for different modes
+	;
+	rjmp predraw 		; Draw pixels
+	rjmp clear_screen 	; Clear screen
+
+clear_screen:
+
+predraw:
+	; Fetch 8 bytes for next drawable line
 	; and draw pixels for current line. We repeat each line 4 times
 	; so finally we get 32 bytes for the next drawable line and
 	; repeat the process. X register already contains pointer to
