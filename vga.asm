@@ -59,12 +59,12 @@
 ;
 .equ UART_WAIT	= 129	; HSYNC timer value where we start looking
 			; for UART samples (or handle received data)
-.equ HSYNC_WAIT	= 157	; Here we start precalculating the pixels
+.equ HSYNC_WAIT	= 157	; HSYNC value where we start precalculating the pixels
 			; and drawing to screen
 .equ JITTERVAL	= 8	; This must be synced with HSYNC_WAIT value.
 			; We want Timer0 counter to be 0-4 in
 			; jitterfix label. I used AVR Studio simulator
-			; to sync this value
+			; to sync this value.
 
 ; Pins used for different signals
 ;
@@ -101,15 +101,15 @@ screen_end:
 main:
 	; Set default values to registers
 	;
-	clr zero		; Zero the zero-register
+	clr zero			; Zero the zero-register
 	clr one
-	inc one			; Register to hold value 1
+	inc one				; Register to hold value 1
 	ldi temp, 32
-	mov alt_eor, temp	; Buffer XORing value
+	mov alt_eor, temp		; Buffer XORing value
 	ldi temp, 124
-	mov uart_eor, temp	; UART sequence XORing value
-	clr scr_ind_hi		; Clear screen index high
-	clr scr_ind_lo		; Clear screen index low
+	mov uart_eor, temp		; UART sequence XORing value
+	clr scr_ind_hi			; Clear screen index high
+	clr scr_ind_lo			; Clear screen index low
 
 	; Make sure we clear the SRAM first
 	;
@@ -332,8 +332,15 @@ clear_screen:
 	;
 	ldi temp, 64
 
+	; First 64 bytes is cleared with zero
+	; but the rest with space (32)
+	;
+	cp clear_cnt, zero
+	brne clear_loop
+	clr alt_eor
+
 clear_loop:
-	st X+, zero 			; X is set when we get clear command.
+	st X+, alt_eor 			; X is set when we get clear command.
 	dec temp 			; We clear the whole 512 bytes
 	brne clear_loop 		; of memory 64 bytes at a time.
 
@@ -344,9 +351,12 @@ clear_loop:
 	cbr state, (1 << st_clear)
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
+	eor zero, zero 			; Return zero-register back to normal
 
 
 clear_next:
+	ldi temp, 32			; Return alt_eor back to original
+	mov alt_eor, temp
 	rjmp wait_uart			; Don't draw pixels
 
 
