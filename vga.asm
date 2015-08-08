@@ -491,14 +491,18 @@ screen_done:
 	; We have drawn full screen, initialize values
 	; back to start values for next refresh
 	;
-	clr vline_lo
-	clr vline_hi
-	clr alt
-	ldi alt_cnt, 4
-	clr char_x
+	clr vline_lo		; Vertical line low
+	clr vline_hi 		; Vertical line high
+	clr alt 		; Alternate value
+	ldi alt_cnt, 4		; Alternating counter
+	clr char_x		; X offset
+	ldi font_hi, 0x18	; Font flash addr high byte
+
+	sbrc clear_mode, 0	; If we are in screen clearing mode,
+	rjmp wait_uart		; skip buffer clearing
+
 	ldi XL, low(screenbuf)	; Pointer to start of 
 	ldi XH, high(screenbuf)	; the screen buffer
-	ldi font_hi, 0x18	; Font flash addr high byte
 
 clear_drawbuf:
 	; Write zeroes to line buffer
