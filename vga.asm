@@ -221,11 +221,13 @@ handle_data:
 	rjmp not_special
 
 handle_esc:
-	mov clear_mode, one
-	clr scr_ind_lo
+	mov clear_mode, one 		; Initiate clear mode
+	clr scr_ind_lo			; Clear screen buffer index
 	clr scr_ind_hi
-	clr clear_cnt
-	rjmp check_index_overflow 	; a bit useless, but harmless
+	clr clear_cnt			; Clear counter zeroed
+	ldi XL, low(drawbuf)		; Start from the beginning
+	ldi XH, high(drawbuf)		; of SRAM
+	rjmp check_index_overflow
 
 handle_enter:
 	andi scr_ind_lo, 224		; Beginning of line
@@ -307,56 +309,29 @@ visible_area:
 	ijmp
 
 visible_jumps:
-	; Jump table for different modes
-	;
 	rjmp predraw 		; Draw pixels
-	rjmp clear_screen 	; Clear screen
 
 clear_screen:
-	; Start clearing the screen
-	; First line is handled specially as we might have some data in buffer
-	cp clear_cnt, zero
-	brne clear_notzero
-	ldi YL, low(screenbuf)
-	ldi YH, high(screenbuf)
-	add YL, scr_ind_lo	; Add screen index to 
-	adc YH, scr_ind_hi	; buffer address
-	ldi temp, 16
-	sub temp, scr_ind_lo
-	rjmp clear_loop
-
-clear_notzero:
-	mov temp, clear_cnt
-	ldi YL, low(screenbuf)
-	ldi YH, high(screenbuf)
-	sbrc temp, 4	; Check for "high bit"
-	inc YH
-	andi temp, 15
-	swap temp
-	add YL, temp
-	adc YH, zero
-
-	ldi temp, 16
-
-	; On first row, check if we've received something
-	; to first line
+	; We jump here if clearing screen
 	;
+	ldi temp, 64
 
 clear_loop:
-	st Y+, zero
-	dec temp
-	brne clear_loop
+	st X+, zero 		; X is set when we get clear command.
+	dec temp 		; We clear the whole 512 bytes
+	brne clear_loop 	; of memory 64 bytes at a time.
 
 	inc clear_cnt
-	ldi temp, 28
-	cp clear_cnt, temp
-	brne clear_next
+	sbrs clear_cnt, 3
+	brne clear_next		; Not done yet
 
-	clr clear_mode
+	clr clear_mode		; Done
+	ldi XL, low(screenbuf)	; Reset X back to beginning of 
+	ldi XH, high(screenbuf)	; screen buffer
+
 
 clear_next:
-	adiw XH:XL, 8
-	rjmp check_housekeep	; Jump over pixel drawing
+	rjmp wait_uart		; Don't draw pixels
 
 
 predraw:
@@ -505,8 +480,11 @@ check_vlines:
 	breq screen_done
 
 vblank:
-	; We are outside visible screen with "nothing to do"
+	; We are outside visible screen with "nothing to do",
+	; except when we are clearing the screen
 	;
+	sbrc clear_mode, 0	; If bit it clear, we skip
+	rjmp clear_screen 	; the jump to screen clearing
 	rjmp wait_uart
 
 screen_done:
