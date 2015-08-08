@@ -335,28 +335,26 @@ clear_screen:
 	; First 64 bytes is cleared with zero
 	; but the rest with space (32)
 	;
-	cp clear_cnt, zero
-	brne clear_loop
-	clr alt_eor
+	cp clear_cnt, zero 		; Is this first iteration (drawbuf area)
+	brne clear_loop 		; Not first, just jump to clearing
+	clr alt_eor			; Temporarily clear buffer XOR value
 
 clear_loop:
 	st X+, alt_eor 			; X is set when we get clear command.
 	dec temp 			; We clear the whole 512 bytes
 	brne clear_loop 		; of memory 64 bytes at a time.
 
-	inc clear_cnt
-	sbrs clear_cnt, 3
-	brne clear_next			; Not done yet
+	inc clear_cnt			; Increase counter
+	sbrs clear_cnt, 3		; Have we reached 8 yet?
+	brne clear_next			; Jump if we haven't
 
-	cbr state, (1 << st_clear)
+	cbr state, (1 << st_clear)	; Everything cleared, clear state bit
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
-	eor zero, zero 			; Return zero-register back to normal
-
 
 clear_next:
-	ldi temp, 32			; Return alt_eor back to original
-	mov alt_eor, temp
+	ldi temp, 32
+	mov alt_eor, temp		; Buffer XORing value back to original
 	rjmp wait_uart			; Don't draw pixels
 
 
