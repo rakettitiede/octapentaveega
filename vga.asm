@@ -29,16 +29,31 @@
 .def uart_eor	= r5	; XOR-value to UART sequencing
 .def uart_seq	= r6	; UART sequence
 .def uart_next	= r7	; Next UART sequence
-.def clear_mode	= r8 	; Draw pixels or clear screen?
-.def clear_cnt	= r9 	; Screen clear counter
+.def clear_cnt	= r8	; Screen clear counter
 .def temp	= r16	; Temporary register
 .def font_hi	= r17	; Font Flash addr high byte
 .def vline_lo	= r18	; Vertical line low byte
 .def vline_hi	= r19	; Vertical line high byte
 .def alt_cnt	= r20	; Buffer alternating counter
 .def uart_byte	= r21	; UART "buffer"
+.def state	= r22 	; Different state bits
 .def scr_ind_lo	= r24	; UART -> screenbuffer index low byte
 .def scr_ind_hi	= r25	; UART -> screenbuffer index high byte
+
+; state: (bits)
+;     0 : Screen clear active
+;     1 : 
+;     2 : 
+;     3 : 
+;     4 :
+;     5 : UART: Byte received (& wait stop)
+;     6 : UART: Receiving
+;     7 : UART: Wait for start
+;
+.equ st_clear	= 0
+.equ st_stop	= 5
+.equ st_receive	= 6
+.equ st_start	= 7
 
 ; Some constant values
 ;
@@ -95,7 +110,13 @@ main:
 	mov uart_eor, temp	; UART sequence XORing value
 	clr scr_ind_hi		; Clear screen index high
 	clr scr_ind_lo		; Clear screen index low
-	clr clear_mode
+
+	; Make sure we clear the SRAM first
+	;
+	sbr state, (1 << st_clear)	; Initiate clear mode
+	clr clear_cnt			; Clear counter zeroed
+	ldi XL, low(drawbuf)		; Start from the beginning
+	ldi XH, high(drawbuf)		; of SRAM
 
 	; Set GPIO directions
 	;
@@ -163,26 +184,26 @@ uart_handling:
 
 	; Check for start condition
 	;
-	sbic PINB, UART_PIN	; Skip rjmp if bit is cleared
-	rjmp wait_hsync		; (detect start case)
+	sbic PINB, UART_PIN		; Skip rjmp if bit is cleared
+	rjmp wait_hsync			; (detect start case)
 
 	; Start detected, set values to registers
 	;
-	ldi uart_byte, 0x80	; C flag set when byte received
-	ldi temp, 24		; First sequence after start
-	mov uart_seq, temp	; bit is 4 HSYNC cycles
-	ldi temp, 100		; Next sequence will be
-	mov uart_next, temp	; 3 and 3 cycles
-	rjmp wait_hsync		; Start bit handling done
+	ldi uart_byte, 0x80		; C flag set when byte received
+	ldi temp, 24			; First sequence after start
+	mov uart_seq, temp		; bit is 4 HSYNC cycles
+	ldi temp, 100			; Next sequence will be
+	mov uart_next, temp		; 3 and 3 cycles
+	rjmp wait_hsync			; Start bit handling done
 
 uart_receive:
 	; Seems we are already receiving. Roll the UART
 	; sequence variable to see if it's time to sample
 	; a bit or not
 	;
-	ror uart_seq		; Roll sequence right
-	brcs uart_sample_seq	; If C flag was set, we sample
-	rjmp wait_hsync		; If not, we just continue
+	ror uart_seq			; Roll sequence right
+	brcs uart_sample_seq		; If C flag was set, we sample
+	rjmp wait_hsync			; If not, we just continue
 
 uart_sample_seq:
 	; We are ready to sample a bit, but first let's
@@ -191,25 +212,25 @@ uart_sample_seq:
 	; waiting for stop bit (uart_seq contains 7)
 	;
 	ldi temp, 7
-	cp uart_seq, temp	; Stop bit sequence
+	cp uart_seq, temp		; Stop bit sequence
 	brne uart_seq_update
-	clr uart_byte		; Waited to stop, clear uart_byte
-	rjmp wait_hsync		; Go wait for hsync
+	clr uart_byte			; Waited to stop, clear uart_byte
+	rjmp wait_hsync			; Go wait for hsync
 
 uart_seq_update:
 	cp uart_seq, one
-	brne uart_sample	; No need to update sequence
-	eor uart_next, uart_eor	; Switch between "3,3" and "4" cycles
-	mov uart_seq, uart_next ; and move it to next sequence
+	brne uart_sample		; No need to update sequence
+	eor uart_next, uart_eor		; Switch between "3,3" and "4" cycles
+	mov uart_seq, uart_next 	; and move it to next sequence
 
 uart_sample:
 	; Sample one bit from UART and update to screen if needed
 	;
-	sbic PINB, UART_PIN	; Skip sec if bit is clear
-	sec			; Set Carry
-	ror uart_byte		; Roll it to UART buffer
-	brcs handle_data	; Do we have full byte?
-	rjmp wait_hsync		; Not full byte yet
+	sbic PINB, UART_PIN		; Skip sec if bit is clear
+	sec				; Set Carry
+	ror uart_byte			; Roll it to UART buffer
+	brcs handle_data		; Do we have full byte?
+	rjmp wait_hsync			; Not full byte yet
 
 handle_data:
 	; We got full byte from UART, handle it
@@ -221,43 +242,43 @@ handle_data:
 	rjmp not_special
 
 handle_esc:
-	mov clear_mode, one 		; Initiate clear mode
+	sbr state, (1 << st_clear)	; Initiate clear mode
 	clr scr_ind_lo			; Clear screen buffer index
 	clr scr_ind_hi
 	clr clear_cnt			; Clear counter zeroed
 	ldi XL, low(drawbuf)		; Start from the beginning
 	ldi XH, high(drawbuf)		; of SRAM
-	rjmp check_index_overflow
+	rjmp check_index_ovf
 
 handle_enter:
 	andi scr_ind_lo, 224		; Beginning of line
 	adiw scr_ind_hi:scr_ind_lo, 32	; Next line
-	rjmp check_index_overflow
+	rjmp check_index_ovf
 
 not_special:
-	ldi YL, low(screenbuf)	; Get screenbuffer address
-	ldi YH, high(screenbuf)	; 
-	add YL, scr_ind_lo	; Add screen index to 
-	adc YH, scr_ind_hi	; buffer address
-	st Y, uart_byte		; Store byte to screenbuffer
+	ldi YL, low(screenbuf)		; Get screenbuffer address
+	ldi YH, high(screenbuf) 
+	add YL, scr_ind_lo		; Add screen index to 
+	adc YH, scr_ind_hi		; buffer address
+	st Y, uart_byte			; Store byte to screenbuffer
 
 	; Advance screen buffer index
 	;
 	adiw scr_ind_hi:scr_ind_lo, 1
 
-check_index_overflow:
-	ldi temp, 60		; Sequence to wait for stop
-	mov uart_seq, temp	; bit. We also put temp data
-	mov uart_byte, temp	; in UART buffer (skip start detect)
+check_index_ovf:
+	ldi temp, 60			; Sequence to wait for stop
+	mov uart_seq, temp		; bit. We also put temp data
+	mov uart_byte, temp		; in UART buffer (skip start detect)
 
 	; Check if screen index has overflown and reset
 	;
 	ldi temp, 0xC0
-	cp scr_ind_lo, temp	; Compare low (448)
-	cpc scr_ind_hi, one	; Compare high (448)
-	brlo wait_hsync		; No overflow, wait hsync
-	clr scr_ind_hi		; Clear hi
-	clr scr_ind_lo		; Clear low
+	cp scr_ind_lo, temp		; Compare low (448)
+	cpc scr_ind_hi, one		; Compare high (448)
+	brlo wait_hsync			; No overflow, wait hsync
+	clr scr_ind_hi			; Clear hi
+	clr scr_ind_lo			; Clear low
 
 wait_hsync:
 	; Wait for HSYNC timer to reach specified value
@@ -290,10 +311,10 @@ check_visible:
 	; Check if we are in visible screen area or in vertical blanking
 	; area of the screen
 	;
-	add vline_lo, one	; Increase vertical line counter
-	adc vline_hi, zero	; Increase high byte
-	cpi vline_lo, 0xC4	; Visible area low byte (452)
-	cpc vline_hi, one	; Visible area high byte (452)
+	add vline_lo, one		; Increase vertical line counter
+	adc vline_hi, zero		; Increase high byte
+	cpi vline_lo, 0xC4		; Visible area low byte (452)
+	cpc vline_hi, one		; Visible area high byte (452)
 	brlo visible_area
 	rjmp vertical_blank
 
@@ -302,14 +323,9 @@ visible_area:
 	; or not. If we are clearing the screen, no need to draw 
 	; pixels and we save cycles.
 	;
-	ldi ZL, low(visible_jumps)
-	ldi ZH, high(visible_jumps)
-	add ZL, clear_mode
-	adc ZH, zero
-	ijmp
-
-visible_jumps:
-	rjmp predraw 		; Draw pixels
+	sbrc state, st_clear
+	rjmp clear_screen		; Clear screen
+	rjmp predraw 			; Draw pixels
 
 clear_screen:
 	; We jump here if clearing screen
@@ -317,21 +333,21 @@ clear_screen:
 	ldi temp, 64
 
 clear_loop:
-	st X+, zero 		; X is set when we get clear command.
-	dec temp 		; We clear the whole 512 bytes
-	brne clear_loop 	; of memory 64 bytes at a time.
+	st X+, zero 			; X is set when we get clear command.
+	dec temp 			; We clear the whole 512 bytes
+	brne clear_loop 		; of memory 64 bytes at a time.
 
 	inc clear_cnt
 	sbrs clear_cnt, 3
-	brne clear_next		; Not done yet
+	brne clear_next			; Not done yet
 
-	clr clear_mode		; Done
-	ldi XL, low(screenbuf)	; Reset X back to beginning of 
-	ldi XH, high(screenbuf)	; screen buffer
+	cbr state, (1 << st_clear)
+	ldi XL, low(screenbuf)		; Reset X back to beginning of 
+	ldi XH, high(screenbuf)		; screen buffer
 
 
 clear_next:
-	rjmp wait_uart		; Don't draw pixels
+	rjmp wait_uart			; Don't draw pixels
 
 
 predraw:
@@ -341,18 +357,18 @@ predraw:
 	; repeat the process. X register already contains pointer to
 	; screen buffer, set in "screen_done"
 	;
-	ldi YL, low(drawbuf)	; Get predraw buffer address
-	ldi YH, high(drawbuf)	; to Y register by alternating
-	eor alt, alt_eor	; alt with alt_eor and adding
-	add YL, alt		; to buffer address, also
-	add YL, char_x		; add x-offset
-	mov ZH, font_hi		; Font flash high byte
+	ldi YL, low(drawbuf)		; Get predraw buffer address
+	ldi YH, high(drawbuf)		; to Y register by alternating
+	eor alt, alt_eor		; alt with alt_eor and adding
+	add YL, alt			; to buffer address, also
+	add YL, char_x			; add x-offset
+	mov ZH, font_hi			; Font flash high byte
 
 	; Fetch characters using macro, unrolled 8 times
 	.macro fetch_char
-		ld ZL, X+	; Load char from screen buffer (X) to ZL
-		lpm temp, Z	; and fetch font byte from flash (Z)
-		st Y+, temp	; then store it to predraw buffer (Y)
+		ld ZL, X+		; Load char from screen buffer (X) to ZL
+		lpm temp, Z		; and fetch font byte from flash (Z)
+		st Y+, temp		; then store it to predraw buffer (Y)
 	.endmacro
 
 	fetch_char
@@ -367,10 +383,10 @@ predraw:
 	; Draw pixels, pushing them out from USI. We repeat this
 	; 32 times using macro, without looping, as timing is important
 	;
-	ldi YL, low(drawbuf)	; Get current draw buffer address
-	ldi YH, high(drawbuf)	; to Y register. Notice we don't add
-	eor alt, alt_eor	; the high byte as we've reserved the
-	add YL, alt		; buffer from low 256 byte space
+	ldi YL, low(drawbuf)		; Get current draw buffer address
+	ldi YH, high(drawbuf)		; to Y register. Notice we don't add
+	eor alt, alt_eor		; the high byte as we've reserved the
+	add YL, alt			; buffer from low 256 byte space
 
 	.macro draw_char
 		ld temp, Y+
@@ -417,8 +433,8 @@ predraw:
 
 	; Make sure we don't draw to porch
 	;
-	nop			; Wait for last pixel a while
-	out USIDR, zero		; Zero USI data register
+	nop				; Wait for last pixel a while
+	out USIDR, zero			; Zero USI data register
 
 check_housekeep:
 	; Increase predraw buffer offset by 8
@@ -431,78 +447,78 @@ check_housekeep:
 	;
 	dec alt_cnt
 	breq housekeeping
-	rjmp wait_uart		; Return to HSYNC waiting
+	rjmp wait_uart			; Return to HSYNC waiting
 
 housekeeping:
 	; Advance to next line, alternate buffers
 	; and do some other housekeeping after pixels
 	; have been drawn
 	;
-	ldi alt_cnt, 4		; Reset drawn line counter
-	clr char_x		; Reset offset in predraw buffer
-	eor alt, alt_eor	; Alternate between buffers
-	inc font_hi		; Increase font line
+	ldi alt_cnt, 4			; Reset drawn line counter
+	clr char_x			; Reset offset in predraw buffer
+	eor alt, alt_eor		; Alternate between buffers
+	inc font_hi			; Increase font line
 
 	; Check if we have drawn one character line
 	cpi font_hi, 0x20
-	brne housekeep_done	; Not yet
+	brne housekeep_done		; Not yet full line
 	ldi font_hi, 0x18
 	rjmp wait_uart
 
 housekeep_done:
-	sbiw XH:XL, 32		; Switch screenbuffer back to beginning of line
-	rjmp wait_uart		; Return waiting to UART
+	sbiw XH:XL, 32			; Switch screenbuffer back to beginning of line
+	rjmp wait_uart			; Return waiting to UART
 
 vertical_blank:
 	; Check if we need to switch VSYNC low
 	;
-	cpi vline_lo, 0xDE	; Low
-	cpc vline_hi, one	; High
+	cpi vline_lo, 0xDE		; Low
+	cpc vline_hi, one		; High
 	brne check_vsync_off
-	cbi PORTB, VSYNC_PIN	; Vsync low
+	cbi PORTB, VSYNC_PIN		; Vsync low
 	rjmp wait_uart
 
 check_vsync_off:
 	; Check if we need to switch VSYNC high
 	;
-	cpi vline_lo, 0xE0	; Low
-	cpc vline_hi, one	; High
+	cpi vline_lo, 0xE0		; Low
+	cpc vline_hi, one		; High
 	brne check_vlines
-	sbi PORTB, VSYNC_PIN	; Vsync high
+	sbi PORTB, VSYNC_PIN		; Vsync high
 	rjmp wait_uart
 
 check_vlines:
 	; Have we done 525 lines?
 	;
-	ldi temp, 2		; High byte (525)
-	cpi vline_lo, 0x0D	; Low (525)
-	cpc vline_hi, temp	; High (525)
+	ldi temp, 2			; High byte (525)
+	cpi vline_lo, 0x0D		; Low (525)
+	cpc vline_hi, temp		; High (525)
 	breq screen_done
 
 vblank:
 	; We are outside visible screen with "nothing to do",
 	; except when we are clearing the screen
 	;
-	sbrc clear_mode, 0	; If bit it clear, we skip
-	rjmp clear_screen 	; the jump to screen clearing
+	sbrc state, st_clear		; If bit it clear, we skip
+	rjmp clear_screen 		; the jump to screen clearing
 	rjmp wait_uart
 
 screen_done:
 	; We have drawn full screen, initialize values
 	; back to start values for next refresh
 	;
-	clr vline_lo		; Vertical line low
-	clr vline_hi 		; Vertical line high
-	clr alt 		; Alternate value
-	ldi alt_cnt, 4		; Alternating counter
-	clr char_x		; X offset
-	ldi font_hi, 0x18	; Font flash addr high byte
+	clr vline_lo			; Vertical line low
+	clr vline_hi 			; Vertical line high
+	clr alt 			; Alternate value
+	ldi alt_cnt, 4			; Alternating counter
+	clr char_x			; X offset
+	ldi font_hi, 0x18		; Font flash addr high byte
 
-	sbrc clear_mode, 0	; If we are in screen clearing mode,
-	rjmp wait_uart		; skip buffer clearing
+	sbrc state, st_clear		; If we are in screen clearing mode,
+	rjmp wait_uart			; skip buffer clearing
 
-	ldi XL, low(screenbuf)	; Pointer to start of 
-	ldi XH, high(screenbuf)	; the screen buffer
+	ldi XL, low(screenbuf)		; Pointer to start of 
+	ldi XH, high(screenbuf)		; the screen buffer
 
 clear_drawbuf:
 	; Write zeroes to line buffer
