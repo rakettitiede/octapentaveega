@@ -21,4 +21,4 @@ clean:
 	rm -f *.hex *.obj *.lst *.cof *~
  
 vga.hex: vga.asm font.inc tn85def.inc
-	$(COMPILE) vga.asm
+	$(COMPILE) -l vga.lst vga.asm
