@@ -22,27 +22,28 @@
 ; Z (r30:r31) pointer is used for fetching the data from flash
 ;             with lpm instruction
 ;
-.def zero	= r0	; Register containing value 0
-.def one	= r1	; Register containing value 1
+
+.def zero	= r0	; Register for value 0
+.def one	= r1	; Register for value 1
 .def alt	= r2	; Buffer alternating value
 .def char_x	= r3	; Predraw-buffer x-offset
-.def alt_eor	= r4	; XOR-value to buffer alternating
-.def uart_eor	= r5	; XOR-value to UART sequencing
-.def uart_seq	= r6	; UART sequence
-.def uart_next	= r7	; Next UART sequence
-.def clear_cnt	= r8	; Screen clear counter
-.def uart_buf	= r9	; UART buffer
-.def colors	= r10	; Fore- (0..3) and background (4..7) color
-.def ansi_val1	= r11	; Storage for ANSI cmd value 
-.def ansi_val2	= r12	; Storage for ANSI cmd value
-.def alt_cnt	= r13	; Buffer alternating counter
-.def scroll	= r14	; Screen buffer scroll offset
+.def uart_seq	= r5	; UART sequence
+.def uart_next	= r6	; Next UART sequence
+.def clear_cnt	= r7	; Screen clear counter
+.def uart_buf	= r8	; UART buffer
+.def colors	= r9	; Fore- (0..3) and background (4..7) color
+.def ansi_val1	= r10	; Storage for ANSI cmd value 
+.def ansi_val2	= r11	; Storage for ANSI cmd value
+.def alt_cnt	= r12	; Buffer alternating counter
+.def scroll	= r13	; Screen buffer scroll offset
+
 .def temp	= r16	; Temporary register
-.def font_hi	= r17	; Font Flash addr high byte
-.def vline_lo	= r18	; Vertical line low byte
-.def vline_hi	= r19	; Vertical line high byte
-.def ansi_state = r20 	; ANSI command states described below
-.def uart_byte	= r21	; UART receiving counter & data
+.def temp2	= r17	; Temporary register
+.def font_hi	= r18	; Font Flash addr high byte
+.def vline_lo	= r19	; Vertical line low byte
+.def vline_hi	= r20	; Vertical line high byte
+.def ansi_state = r21 	; ANSI command states described below
+.def uart_byte	= r22	; UART receiving counter & data
 .def state	= r23 	; Bitmask for several states described below
 .def scr_ind_lo	= r24	; UART -> screenbuffer index low byte
 .def scr_ind_hi	= r25	; UART -> screenbuffer index high byte
@@ -92,6 +93,8 @@
 			; We want Timer0 counter to be 0-4 in
 			; jitterfix label. I used AVR Studio simulator
 			; to sync this value.
+.equ UART_XOR	= 124
+.equ ALT_XOR	= 32
 
 ; Pins used for different signals
 ;
@@ -131,10 +134,6 @@ main:
 	clr zero			; Zero the zero-register
 	clr one
 	inc one				; Register to hold value 1
-	ldi temp, 32
-	mov alt_eor, temp		; Buffer XORing value
-	ldi temp, 124
-	mov uart_eor, temp		; UART sequence XORing value
 	clr scr_ind_hi			; Clear screen index high
 	clr scr_ind_lo			; Clear screen index low
 
@@ -247,7 +246,8 @@ uart_sample_seq:
 uart_seq_update:
 	cp uart_seq, one
 	brne uart_sample		; No need to update sequence
-	eor uart_next, uart_eor		; Switch between "3,3" and "4" cycles
+	ldi temp, UART_XOR
+	eor uart_next, temp		; Switch between "3,3" and "4" cycles
 	mov uart_seq, uart_next 	; and move it to next sequence
 
 uart_sample:
@@ -358,30 +358,27 @@ clear_screen:
 	; We jump here if clearing screen
 	;
 	ldi temp, 64
+	ldi temp2, 32
 
 	; First 64 bytes is cleared with zero
 	; but the rest with space (32)
 	;
 	cp clear_cnt, zero 		; Is this first iteration (drawbuf area)
 	brne clear_loop 		; Not first, just jump to clearing
-	clr alt_eor			; Temporarily clear buffer XOR value
+	clr temp2			; First iteration emptied with 2
 
 clear_loop:
-	st X+, alt_eor 			; X is set when we get clear command.
+	st X+, temp2 			; X is set when we get clear command.
 	dec temp 			; We clear the whole 512 bytes
 	brne clear_loop 		; of memory 64 bytes at a time.
 
 	inc clear_cnt			; Increase counter
 	sbrs clear_cnt, 3		; Have we reached 8 yet?
-	brne clear_next			; Jump if we haven't
+	rjmp wait_uart			; Jump if we haven't
 
 	cbr state, (1 << st_clear)	; Everything cleared, clear state bit
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
-
-clear_next:
-	ldi temp, 32
-	mov alt_eor, temp		; Buffer XORing value back to original
 	rjmp wait_uart			; Don't draw pixels
 
 
@@ -394,7 +391,8 @@ predraw:
 	;
 	ldi YL, low(drawbuf)		; Get predraw buffer address
 	ldi YH, high(drawbuf)		; to Y register by alternating
-	eor alt, alt_eor		; alt with alt_eor and adding
+	ldi temp, ALT_XOR		; alt with XOR value
+	eor alt, temp			; and adding result 
 	add YL, alt			; to buffer address, also
 	add YL, char_x			; add x-offset
 	mov ZH, font_hi			; Font flash high byte
@@ -420,8 +418,9 @@ predraw:
 	;
 	ldi YL, low(drawbuf)		; Get current draw buffer address
 	ldi YH, high(drawbuf)		; to Y register. Notice we don't add
-	eor alt, alt_eor		; the high byte as we've reserved the
-	add YL, alt			; buffer from low 256 byte space
+	ldi temp, ALT_XOR		; the high byte as we've reserved the
+	eor alt, temp 			; buffer from low 256 byte space
+	add YL, alt			
 
 	.macro draw_char
 		ld temp, Y+
@@ -492,7 +491,8 @@ housekeeping:
 	ldi temp, 4
 	mov alt_cnt, temp 		; Reset drawn line counter
 	clr char_x			; Reset offset in predraw buffer
-	eor alt, alt_eor		; Alternate between buffers
+	ldi temp, ALT_XOR
+	eor alt, temp 			; Alternate between buffers
 	inc font_hi			; Increase font line
 
 	; Check if we have drawn one character line
@@ -562,11 +562,9 @@ clear_drawbuf:
 	;
 	ldi YL, low(drawbuf)
 	ldi YH, high(drawbuf)
-	ldi temp, 32
+	ldi temp, 32			; Clear 32 bytes
 
 drawbuf_clear_loop:
-	; Loop 32 times
-	;
 	st Y+, zero
 	dec temp
 	brne drawbuf_clear_loop
