@@ -27,18 +27,18 @@
 .def one	= r1	; Register for value 1
 .def alt	= r2	; Buffer alternating value
 .def char_x	= r3	; Predraw-buffer x-offset
-.def uart_seq	= r5	; UART sequence
-.def uart_next	= r6	; Next UART sequence
-.def clear_cnt	= r7	; Screen clear counter
-.def uart_buf	= r8	; UART buffer
-.def colors	= r9	; Fore- (0..3) and background (4..7) color
-.def ansi_val1	= r10	; Storage for ANSI cmd value 
-.def ansi_val2	= r11	; Storage for ANSI cmd value
-.def alt_cnt	= r12	; Buffer alternating counter
-.def scroll	= r13	; Screen buffer scroll offset
+.def uart_seq	= r4	; UART sequence
+.def uart_next	= r5	; Next UART sequence
+.def clear_cnt	= r6	; Screen clear counter
+.def uart_buf	= r7	; UART buffer
+.def colors	= r8	; Fore- (0..3) and background (4..7) color
+.def ansi_val1	= r9	; Storage for ANSI cmd value
+.def ansi_val2	= r10	; Storage for ANSI cmd value
+.def alt_cnt	= r11	; Buffer alternating counter
+.def scroll	= r12	; Screen buffer scroll offset
 
 .def temp	= r16	; Temporary register
-.def temp2	= r17	; Temporary register
+.def temp2	= r17	; Temporary register 2
 .def font_hi	= r18	; Font Flash addr high byte
 .def vline_lo	= r19	; Vertical line low byte
 .def vline_hi	= r20	; Vertical line high byte
@@ -51,37 +51,36 @@
 
 ; state: (bits)
 ;
-;     0 : Screen clear active
-;     1 :
-;     2 :
-;     3 :
-;     4 :
-;     5 : UART: Byte received (& wait for stop)
-;     6 : UART: Receiving
 ;     7 : UART: Wait for start
+;     6 : UART: Receiving
+;     5 : UART: Byte received (& wait for stop)
+;     4 :
+;     3 :
+;     2 :
+;     1 :
+;     0 : Screen clear active
 ;
-.equ st_clear	= 0
-.equ st_stop	= 5
-.equ st_receive	= 6
 .equ st_start	= 7
+.equ st_receive	= 6
+.equ st_stop	= 5
+.equ st_clear	= 0
 
 ; ansi_state: (bits)
 ;
-;     0 : ESC received
-;     1 : Opening bracket received (after ESC)
-;     2 : Value received (after bracket)
-;     3 : Second value received
-;     4 : ANSI command letter received
-;     5 :
-;     6 :
-;     7 :
+;     7 : ESC received
+;     6 : Opening bracket received (after ESC)
+;     5 : Value received (after bracket)
+;     4 : Second value received
+;     3 : ANSI command letter received
+;     2 :
+;     1 : Counter
+;     0 : Counter
 ;
-.equ an_esc	= 0
-.equ an_bracket	= 1
-.equ an_first	= 2
-.equ an_second	= 3
-.equ an_cmd	= 4
-
+.equ an_esc	= 7
+.equ an_bracket	= 6
+.equ an_first	= 5
+.equ an_second	= 4
+.equ an_cmd	= 3
 
 ; Some constant values
 ;
