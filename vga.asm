@@ -202,9 +202,9 @@ wait_uart:
 
 uart_handling:
 	; Check if we are already receiving,
-	; UART buffer should not be 0 then.
+	; uart_seq should not be 0 then.
 	;
-	cpi uart_byte, 0
+	cp uart_seq, zero
 	brne uart_receive
 
 	; Check for start condition
@@ -239,7 +239,7 @@ uart_sample_seq:
 	ldi temp, 7
 	cp uart_seq, temp		; Stop bit sequence
 	brne uart_seq_update
-	clr uart_byte			; Waited to stop, clear uart_byte
+	clr uart_seq			; Stop bit. Clear uart_seq (wait for new start bit)
 	rjmp wait_hsync			; Go wait for hsync
 
 uart_seq_update:
@@ -294,8 +294,7 @@ not_special:
 
 check_index_ovf:
 	ldi temp, 60			; Sequence to wait for stop
-	mov uart_seq, temp		; bit. We also put temp data
-	mov uart_byte, temp		; in UART buffer (skip start detect)
+	mov uart_seq, temp		; bit.
 
 	; Check if screen index has overflown and reset
 	;
