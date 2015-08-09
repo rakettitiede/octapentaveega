@@ -236,7 +236,7 @@ uart_sample_seq:
 	; (if uart_seq contains value 1) or are we just
 	; waiting for stop bit (uart_seq contains 7)
 	;
-	ldi temp, 7
+	ldi temp, 3
 	cp uart_seq, temp		; Stop bit sequence
 	brne uart_seq_update
 	clr uart_seq			; Stop bit. Clear uart_seq (wait for new start bit)
@@ -293,7 +293,7 @@ not_special:
 	adiw scr_ind_hi:scr_ind_lo, 1
 
 check_index_ovf:
-	ldi temp, 60			; Sequence to wait for stop
+	ldi temp, 28			; Sequence to wait for stop
 	mov uart_seq, temp		; bit.
 
 	; Check if screen index has overflown and reset
@@ -377,7 +377,11 @@ clear_loop:
 	cbr state, (1 << st_clear)	; Everything cleared, clear state bit
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
-	rjmp wait_uart			; Don't draw pixels
+	clr alt 			; Prevent crap on screen by
+	ldi temp, 4 			; resetting alt and 
+	mov alt_cnt, temp 		; alternating counter
+	clr char_x			; and X-offset after clear
+	rjmp wait_uart			; Done clearing
 
 
 predraw:
