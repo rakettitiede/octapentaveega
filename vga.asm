@@ -12,7 +12,7 @@
 .include "font.inc"
 
 ; Registers have been named for easier access.
-; On top of these we use all of the X, Y and Z
+; in addition we use all of the X, Y and Z
 ; register pairs for pointers to different buffers
 ;
 ; X (r26:r27) is pointer to screen buffer
@@ -30,23 +30,31 @@
 .def uart_seq	= r6	; UART sequence
 .def uart_next	= r7	; Next UART sequence
 .def clear_cnt	= r8	; Screen clear counter
+.def uart_buf	= r9	; UART buffer
+.def colors	= r10	; Fore- (0..3) and background (4..7) color
+.def ansi_val1	= r11	; Storage for ANSI cmd value 
+.def ansi_val2	= r12	; Storage for ANSI cmd value
+.def alt_cnt	= r13	; Buffer alternating counter
+.def scroll	= r14	; Screen buffer scroll offset
 .def temp	= r16	; Temporary register
 .def font_hi	= r17	; Font Flash addr high byte
 .def vline_lo	= r18	; Vertical line low byte
 .def vline_hi	= r19	; Vertical line high byte
-.def alt_cnt	= r20	; Buffer alternating counter
-.def uart_byte	= r21	; UART "buffer"
-.def state	= r22 	; Different state bits
+.def ansi_state = r20 	; ANSI command states described below
+.def uart_byte	= r21	; UART receiving counter & data
+.def state	= r23 	; Bitmask for several states described below
 .def scr_ind_lo	= r24	; UART -> screenbuffer index low byte
 .def scr_ind_hi	= r25	; UART -> screenbuffer index high byte
+			; r26 .. r31 described above
 
 ; state: (bits)
+;
 ;     0 : Screen clear active
-;     1 : 
-;     2 : 
-;     3 : 
+;     1 :
+;     2 :
+;     3 :
 ;     4 :
-;     5 : UART: Byte received (& wait stop)
+;     5 : UART: Byte received (& wait for stop)
 ;     6 : UART: Receiving
 ;     7 : UART: Wait for start
 ;
@@ -54,6 +62,24 @@
 .equ st_stop	= 5
 .equ st_receive	= 6
 .equ st_start	= 7
+
+; ansi_state: (bits)
+;
+;     0 : ESC received
+;     1 : Opening bracket received (after ESC)
+;     2 : Value received (after bracket)
+;     3 : Second value received
+;     4 : ANSI command letter received
+;     5 :
+;     6 :
+;     7 :
+;
+.equ an_esc	= 0
+.equ an_bracket	= 1
+.equ an_first	= 2
+.equ an_second	= 3
+.equ an_cmd	= 4
+
 
 ; Some constant values
 ;
@@ -189,7 +215,7 @@ uart_handling:
 
 	; Start detected, set values to registers
 	;
-	ldi uart_byte, 0x80		; C flag set when byte received
+	ldi uart_byte, 128		; C flag set when byte received
 	ldi temp, 24			; First sequence after start
 	mov uart_seq, temp		; bit is 4 HSYNC cycles
 	ldi temp, 100			; Next sequence will be
@@ -273,7 +299,7 @@ check_index_ovf:
 
 	; Check if screen index has overflown and reset
 	;
-	ldi temp, 0xC0
+	ldi temp, 192
 	cp scr_ind_lo, temp		; Compare low (448)
 	cpc scr_ind_hi, one		; Compare high (448)
 	brlo wait_hsync			; No overflow, wait hsync
@@ -313,7 +339,7 @@ check_visible:
 	;
 	add vline_lo, one		; Increase vertical line counter
 	adc vline_hi, zero		; Increase high byte
-	cpi vline_lo, 0xC4		; Visible area low byte (452)
+	cpi vline_lo, 196		; Visible area low byte (452)
 	cpc vline_hi, one		; Visible area high byte (452)
 	brlo visible_area
 	rjmp vertical_blank
@@ -462,7 +488,8 @@ housekeeping:
 	; and do some other housekeeping after pixels
 	; have been drawn
 	;
-	ldi alt_cnt, 4			; Reset drawn line counter
+	ldi temp, 4
+	mov alt_cnt, temp 		; Reset drawn line counter
 	clr char_x			; Reset offset in predraw buffer
 	eor alt, alt_eor		; Alternate between buffers
 	inc font_hi			; Increase font line
@@ -480,8 +507,8 @@ housekeep_done:
 vertical_blank:
 	; Check if we need to switch VSYNC low
 	;
-	cpi vline_lo, 0xDE		; Low
-	cpc vline_hi, one		; High
+	cpi vline_lo, 222		; Low (478)
+	cpc vline_hi, one		; High (478)
 	brne check_vsync_off
 	cbi PORTB, VSYNC_PIN		; Vsync low
 	rjmp wait_uart
@@ -489,8 +516,8 @@ vertical_blank:
 check_vsync_off:
 	; Check if we need to switch VSYNC high
 	;
-	cpi vline_lo, 0xE0		; Low
-	cpc vline_hi, one		; High
+	cpi vline_lo, 224		; Low (480)
+	cpc vline_hi, one		; High (480)
 	brne check_vlines
 	sbi PORTB, VSYNC_PIN		; Vsync high
 	rjmp wait_uart
@@ -499,7 +526,7 @@ check_vlines:
 	; Have we done 525 lines?
 	;
 	ldi temp, 2			; High byte (525)
-	cpi vline_lo, 0x0D		; Low (525)
+	cpi vline_lo, 13		; Low (525)
 	cpc vline_hi, temp		; High (525)
 	breq screen_done
 
@@ -518,7 +545,8 @@ screen_done:
 	clr vline_lo			; Vertical line low
 	clr vline_hi 			; Vertical line high
 	clr alt 			; Alternate value
-	ldi alt_cnt, 4			; Alternating counter
+	ldi temp, 4
+	mov alt_cnt, temp		; Alternating counter
 	clr char_x			; X offset
 	ldi font_hi, 0x18		; Font flash addr high byte
 
