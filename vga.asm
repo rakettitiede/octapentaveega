@@ -15,7 +15,8 @@
 ; in addition we use all of the X, Y and Z
 ; register pairs for pointers to different buffers
 ;
-; X (r26:r27) is pointer to screen buffer
+; X (r26:r27) is pointer to screen buffer, also used while
+;             clearing the screen
 ; Y (r28:r29) is pointer to either predraw, or currently being
 ;             drawn buffer
 ; Z (r30:r31) pointer is used for fetching the data from flash
