@@ -1,12 +1,23 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                      ;;
-;; 32 x 14 character VGA output with UART for Attiny85. ;;
-;;                                                      ;;
-;; (C) Jari Tulilahti 2015. All right and deserved.     ;;
-;;                                                      ;;
-;;     //Jartza                                         ;;
-;;                                                      ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                             ;;
+;;   32 x 14 character VGA output with UART for Attiny85.                      ;;
+;;                                                                             ;;
+;;                                                                             ;;
+;;   Copyright 2015 Jari Tulilahti                                             ;;
+;;                                                                             ;;
+;;   Licensed under the Apache License, Version 2.0 (the "License");           ;;
+;;   you may not use this file except in compliance with the License.          ;;
+;;   You may obtain a copy of the License at                                   ;;
+;;                                                                             ;;
+;;       http://www.apache.org/licenses/LICENSE-2.0                            ;;
+;;                                                                             ;;
+;;   Unless required by applicable law or agreed to in writing, software       ;;
+;;   distributed under the License is distributed on an "AS IS" BASIS,         ;;
+;;   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ;;
+;;   See the License for the specific language governing permissions and       ;;
+;;   limitations under the License.                                            ;;
+;;                                                                             ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .include "tn85def.inc"
 .include "font.inc"
@@ -23,77 +34,67 @@
 ;             with lpm instruction
 ;
 
-.def zero	= r0	; Register for value 0
-.def one	= r1	; Register for value 1
-.def alt	= r2	; Buffer alternating value
-.def char_x	= r3	; Predraw-buffer x-offset
-.def uart_seq	= r4	; UART sequence
-.def uart_next	= r5	; Next UART sequence
-.def clear_cnt	= r6	; Screen clear counter
-.def uart_buf	= r7	; UART buffer
-.def colors	= r8	; Fore- (0..3) and background (4..7) color
-.def ansi_val1	= r9	; Storage for ANSI cmd value
-.def ansi_val2	= r10	; Storage for ANSI cmd value
-.def alt_cnt	= r11	; Buffer alternating counter
-.def scroll	= r12	; Screen buffer scroll offset
+.def zero		= r0		; Register for value 0
+.def one		= r1		; Register for value 1
+.def alt		= r2		; Buffer alternating value
+.def char_x		= r3		; Predraw-buffer x-offset
+.def uart_seq		= r4		; UART sequence
+.def uart_next		= r5		; Next UART sequence
+.def clear_cnt		= r6		; Screen clear counter
+.def uart_byte		= r7		; UART receiving counter & data
+.def colors_fg		= r8		; Foreground color
+.def colors_bg		= r9		; Background (4..7) color
+.def ansi_val1		= r10		; Storage for ANSI cmd value
+.def ansi_val2		= r11		; Storage for ANSI cmd value
+.def alt_cnt		= r12		; Buffer alternating counter
+.def scroll		= r13		; Screen buffer scroll offset
 
-.def temp	= r16	; Temporary register
-.def temp2	= r17	; Temporary register 2
-.def font_hi	= r18	; Font Flash addr high byte
-.def vline_lo	= r19	; Vertical line low byte
-.def vline_hi	= r20	; Vertical line high byte
-.def ansi_state = r21 	; ANSI command states described below
-.def uart_byte	= r22	; UART receiving counter & data
-.def state	= r23 	; Bitmask for several states described below
-.def scr_ind_lo	= r24	; UART -> screenbuffer index low byte
-.def scr_ind_hi	= r25	; UART -> screenbuffer index high byte
-			; r26 .. r31 described above
+.def temp		= r16		; Temporary register
+.def temp2		= r17		; Temporary register 2
+.def font_hi		= r18		; Font Flash addr high byte
+.def cursor_x		= r19		; Cursor X coordinate
+.def cursor_y		= r20		; Cursor Y coordinate
+.def ansi_state		= r21 		; ANSI command states described below
+.def uart_buf		= r22		; UART buffer
+.def state		= r23 		; Bitmask for several states described below
+.def vline_lo		= r24		; Vertical line low byte
+.def vline_hi		= r25		; Vertical line high byte
+					; r26 .. r31 described above
 
 ; state: (bits)
 ;
-;     7 : UART: Wait for start
-;     6 : UART: Receiving
-;     5 : UART: Byte received (& wait for stop)
-;     4 :
-;     3 :
-;     2 :
-;     1 :
-;     0 : Screen clear active
-;
-.equ st_start	= 7
-.equ st_receive	= 6
-.equ st_stop	= 5
-.equ st_clear	= 0
+.equ st_clear		= 0		; Screen clear mode active bit
+.equ st_wrap		= 1		; Wrap mode active bit
+.equ st_uart		= 2		; UART data in buffer
+.equ st_clear_val	= (1 << 0)	; Value to set/clear clear mode
+.equ st_wrap_val	= (1 << 1)	; Value to set/clear wrap mode
+.equ st_uart_val	= (1 << 2)	; Value to set/clear UART buffer state
 
 ; ansi_state: (bits)
 ;
-;     7 : ESC received
-;     6 : Opening bracket received (after ESC)
-;     5 : Value received (after bracket)
-;     4 : Second value received
-;     3 : ANSI command letter received
-;     2 :
-;     1 : Counter
-;     0 : Counter
+; 0 : None
+; 1 : ESC received
+; 2 : [ Received
+; 3: semicolon received
 ;
-.equ an_esc	= 7
-.equ an_bracket	= 6
-.equ an_first	= 5
-.equ an_second	= 4
-.equ an_cmd	= 3
 
-; Some constant values
+; Constants
 ;
-.equ UART_WAIT	= 129	; HSYNC timer value where we start looking
-			; for UART samples (or handle received data)
-.equ HSYNC_WAIT	= 157	; HSYNC value where we start precalculating the pixels
-			; and drawing to screen
-.equ JITTERVAL	= 8	; This must be synced with HSYNC_WAIT value.
-			; We want Timer0 counter to be 0-4 in
-			; jitterfix label. I used AVR Studio simulator
-			; to sync this value.
-.equ UART_XOR	= 124
-.equ ALT_XOR	= 32
+
+.equ MY_COLOR	= 7			; Color bits. 7 = all (single attiny)
+.equ UART_WAIT	= 129			; HSYNC timer value where we start looking
+					; for UART samples (or handle received data)
+.equ HSYNC_WAIT	= 157			; HSYNC value where we start precalculating
+					; the pixels and drawing to screen
+.equ JITTERVAL	= 8			; This must be synced with HSYNC_WAIT value.
+					; We want Timer0 counter to be 0-4 in
+					; jitterfix label. I used AVR Studio simulator
+					; to sync this value.
+.equ VSYNC_LOW	= 478 - 256		; Turn VSYNC low on this vertical line
+.equ VSYNC_HIGH	= 480 - 256		; Turn VSYNC high on this vertical line
+.equ VSYNC_FULL	= 525 - 512		; Full screen is this many lines
+.equ UART_XOR	= 124			; UART sequence magic XORing value
+.equ ALT_XOR	= 32			; Buffer flipping value
 
 ; Pins used for different signals
 ;
@@ -133,12 +134,10 @@ main:
 	clr zero			; Zero the zero-register
 	clr one
 	inc one				; Register to hold value 1
-	clr scr_ind_hi			; Clear screen index high
-	clr scr_ind_lo			; Clear screen index low
 
 	; Make sure we clear the SRAM first
 	;
-	sbr state, (1 << st_clear)	; Initiate clear mode
+	sbr state, st_clear_val		; Initiate clear mode
 	clr clear_cnt			; Clear counter zeroed
 	ldi XL, low(drawbuf)		; Start from the beginning
 	ldi XH, high(drawbuf)		; of SRAM
@@ -210,11 +209,12 @@ uart_handling:
 	; Check for start condition
 	;
 	sbic PINB, UART_PIN		; Skip rjmp if bit is cleared
-	rjmp wait_hsync			; (detect start case)
+	rjmp uart_gotdata		; Check if we have data in buffer then
 
 	; Start detected, set values to registers
 	;
-	ldi uart_byte, 128		; C flag set when byte received
+	ldi temp, 128
+	mov uart_byte, temp		; C flag set when byte received
 	ldi temp, 24			; First sequence after start
 	mov uart_seq, temp		; bit is 4 HSYNC cycles
 	ldi temp, 100			; Init next sequence value
@@ -228,7 +228,7 @@ uart_receive:
 	;
 	ror uart_seq			; Roll sequence right
 	brcs uart_sample_seq		; If C flag was set, we sample
-	rjmp wait_hsync			; If not, we just continue
+	rjmp uart_gotdata		; If not, we check if we have data in buffer
 
 uart_sample_seq:
 	; We are ready to sample a bit, but first let's
@@ -239,7 +239,7 @@ uart_sample_seq:
 	ldi temp, 3
 	cp uart_seq, temp		; Stop bit sequence
 	brne uart_seq_update
-	clr uart_seq			; Stop bit. Clear uart_seq (wait for new start bit)
+	clr uart_seq			; Stop bit. Clear uart_seq (wait start bit)
 	rjmp wait_hsync			; Go wait for hsync
 
 uart_seq_update:
@@ -259,51 +259,72 @@ uart_sample:
 	rjmp wait_hsync			; Not full byte yet
 
 handle_data:
-	; We got full byte from UART, handle it
+	; We got full byte from UART, buffer it
 	;
-	cpi uart_byte, 27		; Special case: ESC
+	ldi temp, 7			; Sequence to wait for stop
+	mov uart_seq, temp		; bit.
+
+	mov uart_buf, uart_byte		; Move it to buffer
+	sbr state, st_uart_val		; Tell we have data in buffer
+	rjmp wait_hsync
+
+uart_gotdata:
+	; Check if we have data and handle it
+	;
+	sbrs state, st_uart		; Do we have something in buffer?
+	rjmp wait_hsync			; If we don't, go wait HSYNC
+
+	; We do have byte
+	;
+	cbr state, st_uart_val		; Clear UART buffer state
+
+	cpi uart_buf, 27		; Special case: ESC
 	breq handle_esc
-	cpi uart_byte, 13		; Special case: Enter
+	cpi uart_buf, 13		; Special case: Enter
 	breq handle_enter
 	rjmp not_special
 
 handle_esc:
-	sbr state, (1 << st_clear)	; Initiate clear mode
-	clr scr_ind_lo			; Clear screen buffer index
-	clr scr_ind_hi
+	sbr state, st_clear_val		; Initiate clear mode
+	clr cursor_x			; Clear screen buffer index
+	clr cursor_y
 	clr clear_cnt			; Clear counter zeroed
 	ldi XL, low(drawbuf)		; Start from the beginning
 	ldi XH, high(drawbuf)		; of SRAM
-	rjmp check_index_ovf
+	rjmp check_cursor_ovf
 
 handle_enter:
-	andi scr_ind_lo, 224		; Beginning of line
-	adiw scr_ind_hi:scr_ind_lo, 32	; Next line
-	rjmp check_index_ovf
+	clr cursor_x			; Clear X coordinate
+	inc cursor_y			; Increase Y coordinate
+	rjmp check_cursor_ovf
 
 not_special:
 	ldi YL, low(screenbuf)		; Get screenbuffer address
-	ldi YH, high(screenbuf) 
-	add YL, scr_ind_lo		; Add screen index to 
-	adc YH, scr_ind_hi		; buffer address
-	st Y, uart_byte			; Store byte to screenbuffer
+	ldi YH, high(screenbuf)
+	clr temp2
+	mov temp, cursor_y
+	swap temp
+	lsl temp
+	rol temp2
+	add temp, cursor_x
+	add YL, temp			; Add screen index to 
+	adc YH, temp2			; buffer address
+	st Y, uart_buf			; Store byte to screenbuffer
 
 	; Advance screen buffer index
 	;
-	adiw scr_ind_hi:scr_ind_lo, 1
+	inc cursor_x			; Increase cursor X coordinate
 
-check_index_ovf:
-	ldi temp, 7			; Sequence to wait for stop
-	mov uart_seq, temp		; bit.
+check_cursor_ovf:
+	cpi cursor_x, 32		; Check if we've reached the end of line
+	brne wait_hsync			; We haven't, wait HSYNC
 
-	; Check if screen index has overflown and reset
-	;
-	ldi temp, 192
-	cp scr_ind_lo, temp		; Compare low (448)
-	cpc scr_ind_hi, one		; Compare high (448)
-	brlo wait_hsync			; No overflow, wait hsync
-	clr scr_ind_hi			; Clear hi
-	clr scr_ind_lo			; Clear low
+	clr cursor_x			; End of line reached, clear X coordinate
+	inc cursor_y			; and increase Y
+	cpi cursor_y, 14		; Check if we're at the end of screen?
+	brne wait_hsync			; We're not, wait HSYNC
+
+	clr cursor_y			; Clear Y-coordinate
 
 wait_hsync:
 	; Wait for HSYNC timer to reach specified value
@@ -336,12 +357,11 @@ check_visible:
 	; Check if we are in visible screen area or in vertical blanking
 	; area of the screen
 	;
-	add vline_lo, one		; Increase vertical line counter
-	adc vline_hi, zero		; Increase high byte
+	adiw vline_hi:vline_lo, 1	; Increase vertical line counter
 	cpi vline_lo, 196		; Visible area low byte (452)
 	cpc vline_hi, one		; Visible area high byte (452)
 	brlo visible_area
-	rjmp vertical_blank
+	rjmp vertical_sync
 
 visible_area:
 	; We are in visible area. Select if we actually draw pixels
@@ -373,7 +393,7 @@ clear_loop:
 	sbrs clear_cnt, 3		; Have we reached 8 yet?
 	rjmp wait_uart			; Jump if we haven't
 
-	cbr state, (1 << st_clear)	; Everything cleared, clear state bit
+	cbr state, st_clear_val		; Everything cleared, clear state bit
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
 	clr alt 			; Prevent crap on screen by
@@ -506,19 +526,19 @@ housekeep_done:
 	sbiw XH:XL, 32			; Switch screenbuffer back to beginning of line
 	rjmp wait_uart			; Return waiting to UART
 
-vertical_blank:
+vertical_sync:
 	; Check if we need to switch VSYNC low
 	;
-	cpi vline_lo, 222		; Low (478)
+	cpi vline_lo, VSYNC_LOW		; Low (478)
 	cpc vline_hi, one		; High (478)
-	brne check_vsync_off
+	brne check_vsync_high
 	cbi PORTB, VSYNC_PIN		; Vsync low
 	rjmp wait_uart
 
-check_vsync_off:
+check_vsync_high:
 	; Check if we need to switch VSYNC high
 	;
-	cpi vline_lo, 224		; Low (480)
+	cpi vline_lo, VSYNC_HIGH	; Low (480)
 	cpc vline_hi, one		; High (480)
 	brne check_vlines
 	sbi PORTB, VSYNC_PIN		; Vsync high
