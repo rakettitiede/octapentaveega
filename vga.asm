@@ -316,10 +316,7 @@ not_special:
 
 no_cursor_ovf:
 	clr temp2
-	lsl temp
-	lsl temp
-	lsl temp
-	lsl temp
+	swap temp
 	lsl temp
 	rol temp2
 	add temp, cursor_x
