@@ -89,9 +89,10 @@
 					; We want Timer0 counter to be 0-4 in
 					; jitterfix label. I used AVR Studio simulator
 					; to sync this value.
-.equ VSYNC_LOW	= 478 - 256		; Turn VSYNC low on this vertical line
-.equ VSYNC_HIGH	= 480 - 256		; Turn VSYNC high on this vertical line
+.equ VSYNC_LOW	= 480 - 256		; Turn VSYNC low on this vertical line
+.equ VSYNC_HIGH	= VSYNC_LOW + 2		; Turn VSYNC high on this vertical line
 .equ VSYNC_FULL	= 525 - 512		; Full screen is this many lines
+.equ VISIBLE	= 452 - 256		; Visible screen area in vlines (+4 lines)
 .equ UART_XOR	= 124			; UART sequence magic XORing value
 .equ ALT_XOR	= 32			; Buffer flipping value
 
@@ -290,6 +291,7 @@ handle_esc:
 ;	clr clear_cnt			; Clear counter zeroed
 ;	ldi XL, low(drawbuf)		; Start from the beginning
 ;	ldi XH, high(drawbuf)		; of SRAM
+	clr cursor_x
 	inc scroll
 	ldi temp, 14
 	cp scroll, temp
@@ -305,9 +307,19 @@ handle_enter:
 not_special:
 	ldi YL, low(screenbuf)		; Get screenbuffer address
 	ldi YH, high(screenbuf)
-	clr temp2
+
 	mov temp, cursor_y
-	swap temp
+	add temp, scroll
+	cpi temp, 14
+	brlo no_cursor_ovf
+	subi temp, 14
+
+no_cursor_ovf:
+	clr temp2
+	lsl temp
+	lsl temp
+	lsl temp
+	lsl temp
 	lsl temp
 	rol temp2
 	add temp, cursor_x
@@ -362,8 +374,8 @@ check_visible:
 	; area of the screen
 	;
 	adiw vline_hi:vline_lo, 1	; Increase vertical line counter
-	cpi vline_lo, 196		; Visible area low byte (452)
-	cpc vline_hi, one		; Visible area high byte (452)
+	cpi vline_lo, VISIBLE		; Visible area low byte
+	cpc vline_hi, one		; Visible area high byte
 	brlo visible_area
 	rjmp vertical_sync
 
