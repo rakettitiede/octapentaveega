@@ -217,8 +217,8 @@ uart_handling:
 	ldi uart_byte, 128		; C flag set when byte received
 	ldi temp, 24			; First sequence after start
 	mov uart_seq, temp		; bit is 4 HSYNC cycles
-	ldi temp, 100			; Next sequence will be
-	mov uart_next, temp		; 3 and 3 cycles
+	ldi temp, 100			; Init next sequence value
+	mov uart_next, temp
 	rjmp wait_hsync			; Start bit handling done
 
 uart_receive:
@@ -293,7 +293,7 @@ not_special:
 	adiw scr_ind_hi:scr_ind_lo, 1
 
 check_index_ovf:
-	ldi temp, 28			; Sequence to wait for stop
+	ldi temp, 7			; Sequence to wait for stop
 	mov uart_seq, temp		; bit.
 
 	; Check if screen index has overflown and reset
@@ -346,10 +346,9 @@ check_visible:
 visible_area:
 	; We are in visible area. Select if we actually draw pixels
 	; or not. If we are clearing the screen, no need to draw 
-	; pixels and we save cycles.
+	; pixels.
 	;
-	sbrc state, st_clear
-	rjmp clear_screen		; Clear screen
+	sbrs state, st_clear
 	rjmp predraw 			; Draw pixels
 
 clear_screen:
