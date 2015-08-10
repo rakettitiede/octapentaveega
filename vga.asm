@@ -70,19 +70,18 @@
 .equ st_wrap_val	= (1 << 1)	; Value to set/clear wrap mode
 .equ st_uart_val	= (1 << 2)	; Value to set/clear UART buffer state
 
-; ansi_state: (bits)
+; ansi_state: (value)
 ;
 ; 0 : None
 ; 1 : ESC received
 ; 2 : [ Received
 ; 3: semicolon received
-;
+
 
 ; Constants
 ;
-
 .equ MY_COLOR	= 7			; Color bits. 7 = all (single attiny)
-.equ UART_WAIT	= 129			; HSYNC timer value where we start looking
+.equ UART_WAIT	= 130			; HSYNC timer value where we start looking
 					; for UART samples (or handle received data)
 .equ HSYNC_WAIT	= 157			; HSYNC value where we start precalculating
 					; the pixels and drawing to screen
@@ -285,12 +284,17 @@ uart_gotdata:
 	rjmp not_special
 
 handle_esc:
-	sbr state, st_clear_val		; Initiate clear mode
-	clr cursor_x			; Clear screen buffer index
-	clr cursor_y
-	clr clear_cnt			; Clear counter zeroed
-	ldi XL, low(drawbuf)		; Start from the beginning
-	ldi XH, high(drawbuf)		; of SRAM
+;	sbr state, st_clear_val		; Initiate clear mode
+;	clr cursor_x			; Clear screen buffer index
+;	clr cursor_y
+;	clr clear_cnt			; Clear counter zeroed
+;	ldi XL, low(drawbuf)		; Start from the beginning
+;	ldi XH, high(drawbuf)		; of SRAM
+	inc scroll
+	ldi temp, 14
+	cp scroll, temp
+	brne check_cursor_ovf
+	clr scroll
 	rjmp check_cursor_ovf
 
 handle_enter:
@@ -519,6 +523,17 @@ housekeeping:
 	; Check if we have drawn one character line
 	cpi font_hi, 0x20
 	brne housekeep_done		; Not yet full line
+
+	; Scroll support
+	;
+	ldi temp, high(screen_end)
+	cpi XL, low(screen_end)
+	cpc XH, temp
+	brne no_scr_ovf
+	ldi XL, low(screenbuf)
+	ldi XH, high(screenbuf)
+
+no_scr_ovf:
 	ldi font_hi, 0x18
 	rjmp wait_uart
 
@@ -577,6 +592,14 @@ screen_done:
 
 	ldi XL, low(screenbuf)		; Pointer to start of 
 	ldi XH, high(screenbuf)		; the screen buffer
+
+	clr temp2			; Scroll screen
+	mov temp, scroll
+	swap temp
+	lsl temp
+	rol temp2
+	add XL, temp
+	adc XH, temp2
 
 clear_drawbuf:
 	; Write zeroes to line buffer
