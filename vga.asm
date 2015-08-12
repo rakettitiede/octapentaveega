@@ -310,16 +310,8 @@ not_special:
 	adiw cursor_hi:cursor_lo, 1	; Increase cursor location
 
 check_cursor_ovf:
-;	ldi temp, 32
-;	add scroll_lo, temp		; Scroll screen
-;	adc scroll_hi, zero
-;	ldi temp, 192
-;	cp scroll_lo, temp		; Check if scroll needs to
-;	cpc scroll_hi, one		; roll over
-;	brne check_cursor_ovf
-;	clr scroll_lo
-;	clr scroll_hi
-
+	; Check if cursor overflows the screen buffer
+	;
 	cpi cursor_lo, 192		; Check buffer end
 	cpc cursor_hi, one
 	brne check_scroll		; Check if we need to scroll
@@ -328,23 +320,32 @@ check_cursor_ovf:
 	clr cursor_hi			; go back to beginning
 
 check_scroll:
+	; If cursor position matches the scroll offset, we're at the
+	; end of screen and need to scroll.
+	; TODO: If wrap mode disabled, don't scroll!
+	;
 	cp scroll_lo, cursor_lo
 	cpc scroll_hi, cursor_hi	; Cursor at the scroll position?
 	brne wait_hsync			; No need to scroll, go wait HSYNC
 
 scroll_screen:
+	; We don't have enough time to scroll now, set scroll to happen
+	; later (and clear one row in two 16 byte parts)
+	;
 	sbr state, st_scroll_val	; Set scrolling to happen later
 	rjmp wait_hsync
 
 scroll_later:
 	; We're scrolling. Clear half a line
-	; and move the scroll offset
-	ldi YL, low(screenbuf)
+	; and move the scroll offset.
+	; This gets called twice
+	;
+	ldi YL, low(screenbuf)		; Load screenbuffer address
 	ldi YH, high(screenbuf)
-	add YL, scroll_lo
+	add YL, scroll_lo		; Add scroll offset
 	adc YH, scroll_hi
 	ldi temp, 32
-	ldi temp2, 16
+	ldi temp2, 16			; Clear 16 bytes (loop counter)
 
 scroll_clear:	
 	st Y+, temp			; Store space
@@ -352,18 +353,19 @@ scroll_clear:
 	brne scroll_clear		; Loop
 
 	ldi temp, 16
-	add scroll_lo, temp		; Scroll screen
-	adc scroll_hi, zero
+	add scroll_lo, temp		; Move scroll offset by 16 bytes
+	adc scroll_hi, zero		; (because called twice = one row)
 
-	sbrc scroll_lo, 4
-	rjmp wait_hsync
+	sbrc scroll_lo, 4		; If the scroll offset is not evenly
+	rjmp wait_hsync			; divisible by 32, wait for next HSYNC
 
-	cbr state, st_scroll_val	; Not scrolling anymore
+	cbr state, st_scroll_val	; We've cleared full row (32 bytes) now
 	ldi temp, 192
 	cp scroll_lo, temp		; Check if scroll needs to
 	cpc scroll_hi, one		; roll over
-	brne wait_hsync
-	clr scroll_lo
+	brne wait_hsync			; No, not yet
+
+	clr scroll_lo			; Overflow, clear scroll offset
 	clr scroll_hi
 
 wait_hsync:
