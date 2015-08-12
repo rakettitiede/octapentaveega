@@ -37,28 +37,29 @@
 .def zero		= r0		; Register for value 0
 .def one		= r1		; Register for value 1
 .def alt		= r2		; Buffer alternating value
-.def char_x		= r3		; Predraw-buffer x-offset
-.def uart_seq		= r4		; UART sequence
-.def uart_next		= r5		; Next UART sequence
-.def clear_cnt		= r6		; Screen clear counter
-.def uart_byte		= r7		; UART receiving counter & data
-.def colors_fg		= r8		; Foreground color
-.def colors_bg		= r9		; Background (4..7) color
-.def ansi_val1		= r10		; Storage for ANSI cmd value
-.def ansi_val2		= r11		; Storage for ANSI cmd value
-.def alt_cnt		= r12		; Buffer alternating counter
-.def scroll		= r13		; Screen buffer scroll offset
-
+.def alt_cnt		= r3		; Buffer alternating counter
+.def char_x		= r4		; Predraw-buffer x-offset
+.def uart_seq		= r5		; UART sequence
+.def uart_next		= r6		; Next UART sequence
+.def clear_cnt		= r7		; Screen clear counter
+.def uart_byte		= r8		; UART receiving counter & data
+.def colors_fg		= r9		; Foreground color
+.def colors_bg		= r10		; Background (4..7) color
+.def ansi_val1		= r11		; Storage for ANSI cmd value
+.def ansi_val2		= r12		; Storage for ANSI cmd value
+.def vline_lo		= r13		; Vertical line low byte
+.def vline_hi		= r14		; Vertical line high byte
+; r15 unused
 .def temp		= r16		; Temporary register
 .def temp2		= r17		; Temporary register 2
 .def font_hi		= r18		; Font Flash addr high byte
-.def cursor_x		= r19		; Cursor X coordinate
-.def cursor_y		= r20		; Cursor Y coordinate
+.def scroll_lo		= r19		; Screen scroll offset low
+.def scroll_hi		= r20		; Screen scroll offset high
 .def ansi_state		= r21 		; ANSI command states described below
 .def uart_buf		= r22		; UART buffer
 .def state		= r23 		; Bitmask for several states described below
-.def vline_lo		= r24		; Vertical line low byte
-.def vline_hi		= r25		; Vertical line high byte
+.def cursor_lo		= r24		; Cursor offset low
+.def cursor_hi		= r25		; Cursor offset high
 					; r26 .. r31 described above
 
 ; state: (bits)
@@ -66,9 +67,11 @@
 .equ st_clear		= 0		; Screen clear mode active bit
 .equ st_wrap		= 1		; Wrap mode active bit
 .equ st_uart		= 2		; UART data in buffer
+.equ st_scroll		= 3		; Scroll-clear in action
 .equ st_clear_val	= (1 << 0)	; Value to set/clear clear mode
 .equ st_wrap_val	= (1 << 1)	; Value to set/clear wrap mode
 .equ st_uart_val	= (1 << 2)	; Value to set/clear UART buffer state
+.equ st_scroll_val	= (1 << 3)	; Value to set/clear scroll-clear state
 
 ; ansi_state: (value)
 ;
@@ -271,6 +274,9 @@ handle_data:
 uart_gotdata:
 	; Check if we have data and handle it
 	;
+	sbrc state, st_scroll		; We've scrolled, clear one line?
+	rjmp scroll_later
+
 	sbrs state, st_uart		; Do we have something in buffer?
 	rjmp wait_hsync			; If we don't, go wait HSYNC
 
@@ -285,59 +291,80 @@ uart_gotdata:
 	rjmp not_special
 
 handle_esc:
-;	sbr state, st_clear_val		; Initiate clear mode
-;	clr cursor_x			; Clear screen buffer index
-;	clr cursor_y
-;	clr clear_cnt			; Clear counter zeroed
-;	ldi XL, low(drawbuf)		; Start from the beginning
-;	ldi XH, high(drawbuf)		; of SRAM
-	clr cursor_x
-	inc scroll
-	ldi temp, 14
-	cp scroll, temp
-	brne check_cursor_ovf
-	clr scroll
-	rjmp check_cursor_ovf
+	sbr state, st_clear_val		; Initiate clear mode
+	clr clear_cnt			; Clear counter zeroed
+	ldi XL, low(drawbuf)		; Start from the beginning
+	ldi XH, high(drawbuf)		; of SRAM
 
 handle_enter:
-	clr cursor_x			; Clear X coordinate
-	inc cursor_y			; Increase Y coordinate
+	andi cursor_lo, 224		; beginning of screen
+	adiw cursor_hi:cursor_lo, 32	; next line
 	rjmp check_cursor_ovf
 
 not_special:
 	ldi YL, low(screenbuf)		; Get screenbuffer address
 	ldi YH, high(screenbuf)
-
-	mov temp, cursor_y
-	add temp, scroll
-	cpi temp, 14
-	brlo no_cursor_ovf
-	subi temp, 14
-
-no_cursor_ovf:
-	clr temp2
-	swap temp
-	lsl temp
-	rol temp2
-	add temp, cursor_x
-	add YL, temp			; Add screen index to 
-	adc YH, temp2			; buffer address
-	st Y, uart_buf			; Store byte to screenbuffer
-
-	; Advance screen buffer index
-	;
-	inc cursor_x			; Increase cursor X coordinate
+	add YL, cursor_lo		; Move pointer to cursor
+	adc YH, cursor_hi		; location
+	st Y, uart_buf			; Store byte
+	adiw cursor_hi:cursor_lo, 1	; Increase cursor location
 
 check_cursor_ovf:
-	cpi cursor_x, 32		; Check if we've reached the end of line
-	brne wait_hsync			; We haven't, wait HSYNC
+;	ldi temp, 32
+;	add scroll_lo, temp		; Scroll screen
+;	adc scroll_hi, zero
+;	ldi temp, 192
+;	cp scroll_lo, temp		; Check if scroll needs to
+;	cpc scroll_hi, one		; roll over
+;	brne check_cursor_ovf
+;	clr scroll_lo
+;	clr scroll_hi
 
-	clr cursor_x			; End of line reached, clear X coordinate
-	inc cursor_y			; and increase Y
-	cpi cursor_y, 14		; Check if we're at the end of screen?
-	brne wait_hsync			; We're not, wait HSYNC
+	cpi cursor_lo, 192		; Check buffer end
+	cpc cursor_hi, one
+	brne check_scroll		; Check if we need to scroll
 
-	clr cursor_y			; Clear Y-coordinate
+	clr cursor_lo			; End of buffer reached,
+	clr cursor_hi			; go back to beginning
+
+check_scroll:
+	cp scroll_lo, cursor_lo
+	cpc scroll_hi, cursor_hi	; Cursor at the scroll position?
+	brne wait_hsync			; No need to scroll, go wait HSYNC
+
+scroll_screen:
+	sbr state, st_scroll_val	; Set scrolling to happen later
+	rjmp wait_hsync
+
+scroll_later:
+	; We're scrolling. Clear half a line
+	; and move the scroll offset
+	ldi YL, low(screenbuf)
+	ldi YH, high(screenbuf)
+	add YL, scroll_lo
+	adc YH, scroll_hi
+	ldi temp, 32
+	ldi temp2, 16
+
+scroll_clear:	
+	st Y+, temp			; Store space
+	dec temp2
+	brne scroll_clear		; Loop
+
+	ldi temp, 16
+	add scroll_lo, temp		; Scroll screen
+	adc scroll_hi, zero
+
+	sbrc scroll_lo, 4
+	rjmp wait_hsync
+
+	cbr state, st_scroll_val	; Not scrolling anymore
+	ldi temp, 192
+	cp scroll_lo, temp		; Check if scroll needs to
+	cpc scroll_hi, one		; roll over
+	brne wait_hsync
+	clr scroll_lo
+	clr scroll_hi
 
 wait_hsync:
 	; Wait for HSYNC timer to reach specified value
@@ -370,8 +397,10 @@ check_visible:
 	; Check if we are in visible screen area or in vertical blanking
 	; area of the screen
 	;
-	adiw vline_hi:vline_lo, 1	; Increase vertical line counter
-	cpi vline_lo, VISIBLE		; Visible area low byte
+	add vline_lo, one
+	adc vline_hi, zero
+	ldi temp, VISIBLE
+	cp vline_lo, temp		; Visible area low byte
 	cpc vline_hi, one		; Visible area high byte
 	brlo visible_area
 	rjmp vertical_sync
@@ -413,6 +442,10 @@ clear_loop:
 	ldi temp, 4 			; resetting alt and 
 	mov alt_cnt, temp 		; alternating counter
 	clr char_x			; and X-offset after clear
+	clr scroll_hi
+	clr scroll_lo
+	clr cursor_hi
+	clr cursor_lo
 	rjmp wait_uart			; Done clearing
 
 
@@ -553,7 +586,8 @@ housekeep_done:
 vertical_sync:
 	; Check if we need to switch VSYNC low
 	;
-	cpi vline_lo, VSYNC_LOW		; Low (478)
+	ldi temp, VSYNC_LOW
+	cp vline_lo, temp		; Low (478)
 	cpc vline_hi, one		; High (478)
 	brne check_vsync_high
 	cbi PORTB, VSYNC_PIN		; Vsync low
@@ -562,7 +596,8 @@ vertical_sync:
 check_vsync_high:
 	; Check if we need to switch VSYNC high
 	;
-	cpi vline_lo, VSYNC_HIGH	; Low (480)
+	ldi temp, VSYNC_HIGH
+	cp vline_lo, temp		; Low (480)
 	cpc vline_hi, one		; High (480)
 	brne check_vlines
 	sbi PORTB, VSYNC_PIN		; Vsync high
@@ -571,9 +606,10 @@ check_vsync_high:
 check_vlines:
 	; Have we done 525 lines?
 	;
-	ldi temp, 2			; High byte (525)
-	cpi vline_lo, 13		; Low (525)
-	cpc vline_hi, temp		; High (525)
+	ldi temp2, 2			; High byte (525)
+	ldi temp, 13
+	cp vline_lo, temp		; Low (525)
+	cpc vline_hi, temp2		; High (525)
 	breq screen_done
 
 vblank:
@@ -600,15 +636,9 @@ screen_done:
 	rjmp wait_uart			; skip buffer clearing
 
 	ldi XL, low(screenbuf)		; Pointer to start of 
-	ldi XH, high(screenbuf)		; the screen buffer
-
-	clr temp2			; Scroll screen
-	mov temp, scroll
-	swap temp
-	lsl temp
-	rol temp2
-	add XL, temp
-	adc XH, temp2
+	ldi XH, high(screenbuf)		; the screen buffer.
+	add XL, scroll_lo		; Add scroll offset
+	adc XH, scroll_hi		; to address
 
 clear_drawbuf:
 	; Write zeroes to line buffer
