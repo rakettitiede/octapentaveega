@@ -334,15 +334,14 @@ check_scroll:
 
 scroll_screen:
 	; We don't have enough time to scroll now, set scroll to happen
-	; later (and clear one row in two 16 byte parts)
+	; later, without loop
 	;
 	sbr state, st_scroll_val	; Set scrolling to happen later
 	rjmp wait_hsync
 
 scroll_later:
-	; We're scrolling. Clear half a line
+	; We're scrolling. Clear the "last line on screen"
 	; and move the scroll offset.
-	; This gets called twice
 	;
 	ldi YL, low(screenbuf)		; Load screenbuffer address
 	ldi YH, high(screenbuf)
