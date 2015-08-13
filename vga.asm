@@ -287,9 +287,9 @@ uart_gotdata:
 	cpi uart_buf, 27		; Special case: ESC
 	breq handle_esc
 	cpi uart_buf, 13		; Special case: CR
-	breq handle_cr
+	breq handle_cr_or_lf
 	cpi uart_buf, 10		; Special case: LF
-	breq handle_lf
+	breq handle_cr_or_lf
 
 	rjmp not_special
 
@@ -300,11 +300,7 @@ handle_esc:
 	ldi XH, high(drawbuf)		; of SRAM
 	rjmp wait_hsync
 
-handle_cr:
-	andi cursor_lo, 224		; First column
-	rjmp wait_hsync			; No need to check overflow
-
-handle_lf:
+handle_cr_or_lf:
 	andi cursor_lo, 224		; First column
 	adiw cursor_hi:cursor_lo, 32	; Next line
 	rjmp check_cursor_ovf
