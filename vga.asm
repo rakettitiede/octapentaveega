@@ -77,8 +77,8 @@
 ;
 ; 0 : None
 ; 1 : ESC received
-; 2 : [ Received
-; 3: semicolon received
+; 2 : Opening bracket "[" received
+; 3 : Semicolon ";" received (use two values)
 
 
 ; Constants
@@ -280,9 +280,10 @@ uart_gotdata:
 	sbrs state, st_uart		; Do we have something in buffer?
 	rjmp wait_hsync			; If we don't, go wait HSYNC
 
-	; We do have byte
-	;
-	cbr state, st_uart_val		; Clear UART buffer state
+	cbr state, st_uart_val		; We have byte, clear UART buffer state
+
+	cpse ansi_state, zero		; Are we in ANSI handling mode?
+	rjmp handle_ansi		; Yes we are, jump to handle ansi
 
 	cpi uart_buf, 27		; Special case: ESC
 	breq handle_esc
@@ -293,11 +294,38 @@ uart_gotdata:
 
 	rjmp not_special
 
-handle_esc:
+handle_ansi:
+	; ANSI Escape handling
+	;
+	cpse ansi_state, one		; Do we have bracket yet?
+	rjmp ansi_data			; Yes we do
+
+	; Check for bracket
+	;
+	ldi temp, 91			; Ascii 91 = [
+	cpse uart_buf, temp		; Was next character bracket?
+	rjmp unknown_ansi		; No it was not :(
+
+ansi_data:
+	; Handle values and commands
+	;
 	sbr state, st_clear_val		; Initiate clear mode
 	clr clear_cnt			; Clear counter zeroed
 	ldi XL, low(drawbuf)		; Start from the beginning
 	ldi XH, high(drawbuf)		; of SRAM
+	clr ansi_state
+	rjmp wait_hsync
+
+unknown_ansi:
+	; Unknown command after ESC. Just print it to buffer.
+	;
+	clr ansi_state
+	rjmp not_special
+
+handle_esc:
+	mov ansi_state, one		; Set ANSI parsing mode on
+	clr ansi_val1			; Clear ANSI value 
+	clr ansi_val2			; Clear second ANSI value
 	rjmp wait_hsync
 
 handle_cr_or_lf:
