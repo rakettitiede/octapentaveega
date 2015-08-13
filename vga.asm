@@ -418,7 +418,7 @@ jitterfix:
 	ldi ZL, low(jitternop)
 	ldi ZH, high(jitternop)
 	add ZL, temp
-	add ZH, zero
+	adc ZH, zero
 	ijmp
 
 jitternop:
