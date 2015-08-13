@@ -286,8 +286,11 @@ uart_gotdata:
 
 	cpi uart_buf, 27		; Special case: ESC
 	breq handle_esc
-	cpi uart_buf, 13		; Special case: Enter
+	cpi uart_buf, 13		; Special case: CR
 	breq handle_enter
+	cpi uart_buf, 10		; Special case: LF
+	breq handle_enter
+
 	rjmp not_special
 
 handle_esc:
@@ -326,7 +329,8 @@ check_scroll:
 	;
 	cp scroll_lo, cursor_lo
 	cpc scroll_hi, cursor_hi	; Cursor at the scroll position?
-	brne wait_hsync			; No need to scroll, go wait HSYNC
+	breq scroll_screen		; Yes, then we scroll
+	rjmp wait_hsync			; If not, just wait HSYNC
 
 scroll_screen:
 	; We don't have enough time to scroll now, set scroll to happen
@@ -345,21 +349,47 @@ scroll_later:
 	add YL, scroll_lo		; Add scroll offset
 	adc YH, scroll_hi
 	ldi temp, 32
-	ldi temp2, 16			; Clear 16 bytes (loop counter)
 
-scroll_clear:	
-	st Y+, temp			; Store space
-	dec temp2
-	brne scroll_clear		; Loop
+	; Store space, unrolled 32 times
+	;
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
+	st Y+, temp
 
-	ldi temp, 16
-	add scroll_lo, temp		; Move scroll offset by 16 bytes
-	adc scroll_hi, zero		; (because called twice = one row)
+	add scroll_lo, temp		; Move scroll offset by 32 bytes
+	adc scroll_hi, zero		; (one row)
 
-	sbrc scroll_lo, 4		; If the scroll offset is not evenly
-	rjmp wait_hsync			; divisible by 32, wait for next HSYNC
+	cbr state, st_scroll_val	; Remove scroll-later state
 
-	cbr state, st_scroll_val	; We've cleared full row (32 bytes) now
 	ldi temp, 192
 	cp scroll_lo, temp		; Check if scroll needs to
 	cpc scroll_hi, one		; roll over
