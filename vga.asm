@@ -138,6 +138,10 @@ main:
 	clr one
 	inc one				; Register to hold value 1
 
+	; Enable wrap-mode by default
+	;
+	sbr state, st_wrap_val
+
 	; Make sure we clear the SRAM first
 	;
 	sbr state, st_clear_val		; Initiate clear mode
@@ -155,6 +159,7 @@ main:
 	; Set USI mode
 	;
 	sbi USICR, USIWM0
+
 
 set_timers:
 	; HSYNC timer. Prescaler 4, Compare value = 159 = 31.8us
@@ -311,7 +316,19 @@ not_special:
 	add YL, cursor_lo		; Move pointer to cursor
 	adc YH, cursor_hi		; location
 	st Y, uart_buf			; Store byte
+
+	sbrs state, st_wrap		; Check wrap mode
+	rjmp no_wrap_increase		; Non-wrap mode
+
 	adiw cursor_hi:cursor_lo, 1	; Increase cursor location
+	rjmp check_cursor_ovf		; Normally in wrap-mode
+
+no_wrap_increase:
+	mov temp, cursor_lo		; We're in no-wrap-mode
+	andi temp, 31			; Check if end-of-row
+	cpi temp, 31
+	breq check_cursor_ovf		; End-of-row, don't inc cursor
+	adiw cursor_hi:cursor_lo, 1	; Otherwise increase cursor location
 
 check_cursor_ovf:
 	; Check if cursor overflows the screen buffer
@@ -326,8 +343,6 @@ check_cursor_ovf:
 check_scroll:
 	; If cursor position matches the scroll offset, we're at the
 	; end of screen and need to scroll.
-	; TODO: If wrap mode disabled, don't scroll!
-	;
 	cp scroll_lo, cursor_lo
 	cpc scroll_hi, cursor_hi	; Cursor at the scroll position?
 	breq scroll_screen		; Yes, then we scroll
@@ -394,14 +409,18 @@ ansi_value:
 ansi_command:
 	; Parse ANSI command
 	;
+	cpi uart_buf, 109		; m = set color
+	breq ansi_set_color
 	cpi uart_buf, 72		; H = move cursor
 	breq ansi_move_xy
 	cpi uart_buf, 102		; f = move cursor
 	breq ansi_move_xy
 	cpi uart_buf, 74		; J = clear screen
 	breq ansi_clear_screen
-	cpi uart_buf, 109		; m = set color
-	breq ansi_set_color
+	cpi uart_buf, 104		; h = enable wrap
+	breq ansi_enable_wrap
+	cpi uart_buf, 108		; l = disable wrap (lower case L)
+	breq ansi_disable_wrap
 
 	;
 	; Unknown, dismiss ANSI
@@ -427,8 +446,25 @@ ansi_move_xy:
 	sbc cursor_hi, one
 
 no_move_overflow:
-	clr ansi_state
-	rjmp wait_hsync
+	rjmp ansi_done
+
+ansi_enable_wrap:
+	; Enable wrap
+	;
+	ldi temp, 137			; Check value
+	cpse ansi_val1, temp		; =7h = enable wrap
+	rjmp ansi_done
+	sbr state, st_wrap_val
+	rjmp ansi_done
+
+ansi_disable_wrap:
+	; Disable wrap
+	;
+	ldi temp, 137			; Check value
+	cpse ansi_val1, temp		; =7l = disable wrap
+	rjmp ansi_done
+	cbr state, st_wrap_val
+	rjmp ansi_done
 
 ansi_clear_screen:
 	; Screen clear
@@ -438,6 +474,7 @@ ansi_clear_screen:
 	breq ansi_commence_clear
 	clr ansi_state			; Dismiss, invalid number
 	rjmp wait_hsync
+
 
 ansi_commence_clear:
 	; 2J received, clear the screen when we have time
@@ -502,7 +539,7 @@ ansi_second_color:
 	ldi temp, MY_COLOR
 	mov colors_fg, temp
 	clr colors_bg
-	rjmp ansi_color_done
+	rjmp ansi_done
 
 ansi_checkback_2:
 	ldi temp, 40			; Is value background color?
@@ -512,15 +549,15 @@ ansi_checkback_2:
 	ldi temp, 7
 	and ansi_val1, temp		; Set foreground color
 	mov colors_fg, ansi_val1
-	rjmp ansi_color_done
+	rjmp ansi_done
 
 ansi_color_back2:
 	ldi temp, 7
 	and ansi_val1, temp		; Set background color
 	mov colors_bg, ansi_val1
 
-ansi_color_done:
-	clr ansi_state			; Done setting colors
+ansi_done:
+	clr ansi_state			; Done Parsing ANSI
 	rjmp wait_hsync			; Wait for HSYNC
 
 scroll_later:
