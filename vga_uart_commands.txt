@@ -16,29 +16,19 @@ bits	7..5	4..0
 					cursor to 0,0.
 				27:	command-mode (ESC)
 
-	001	<X>		Move cursor X-coordinate to <X> 
-				(0..31). Y-coordinate unaffected.
-
-	010	<Y>		Move cursor Y-coordinate to <Y>
-				(0..13). X-coordinate unaffected
-
-	011	<ext>		Extended command-set, where <ext> is:
-				1:	Wrap-around mode.
-					Screen will not scroll, enter 
-					(13) will not advance
-					to next line, but prints ascii
-					code 13 instead.
-				2:	Scroll-mode. Screen will scroll
-					up when text overflows from last
-					line. Enter (13) moves cursor to
-					beginning of next line.
-
-	101	<line>		Clear line number <line> (0..13), cursor is
-				not moved.
-
-	110	<color>		Change color to <color>. Color will stay
+	001	<color>		Change color to <color>. Color will stay
 				selected until it is changed again. Clear 
 				screen -command resets the color back to
 				default.
 
-	111	ignored		Reserved for future
+	010	ignored		Expect ANSI-escape -code
+
+	100	<X>		Move cursor X-coordinate to <X> 
+				(0..31). Y-coordinate unaffected.
+
+	101	<Y>		Move cursor Y-coordinate to <Y>
+				(0..13). X-coordinate unaffected
+
+	110	<ext>		Extended command-set, where <ext> is:
+				1:	Wrap enabled.
+				2:	Wrap disabled.
