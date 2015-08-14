@@ -78,6 +78,7 @@
 ; 0 : None
 ; 1 : ESC received
 ; 2 : Opening bracket "[" received
+; 3 : Two values received
 
 
 ; Constants
@@ -362,8 +363,12 @@ ansi_data:
 	cpi uart_buf, 59		; Ascii 59 = ;
 	brne ansi_notsemi		; Was not semicolon
 
+	; 
+	; Got value separator (semicolon)
 	mov ansi_val2, ansi_val1	; Move data to 2nd buffer
 	clr ansi_val1			; And clear 1st buffer
+	ldi ansi_state, 3		; Tell we have more than 1 value
+
 	rjmp wait_hsync
 
 ansi_notsemi:
@@ -395,6 +400,8 @@ ansi_command:
 	breq ansi_move_xy
 	cpi uart_buf, 74		; J = clear screen
 	breq ansi_clear_screen
+	cpi uart_buf, 109		; m = set color
+	breq ansi_set_color
 
 	;
 	; Unknown, dismiss ANSI
@@ -448,6 +455,73 @@ unknown_ansi:
 	clr ansi_state
 	rjmp not_special
 
+ansi_set_color:
+	; Set colors. We do same check for both values.
+	;
+	ldi temp, 3
+	cpse ansi_state, temp		; Check if we have 2 values?
+	rjmp ansi_second_color		; Nope, jump to "second" == first value
+
+	ldi temp, 30
+	cp temp, ansi_val2		; Is the value color?
+	brsh ansi_checkback_1
+
+	; Any value lower than 30 just resets to original.
+	; Spec says only 0, but we cut few corners...
+	;
+	ldi temp, MY_COLOR
+	mov colors_fg, temp
+	clr colors_bg
+	rjmp ansi_second_color
+
+ansi_checkback_1:
+	ldi temp, 40			; Is value background color?
+	cp temp, ansi_val2
+	brsh ansi_color_back1
+
+	ldi temp, 7
+	and ansi_val2, temp		; Set foreground color
+	mov colors_fg, ansi_val2
+	rjmp ansi_second_color
+
+ansi_color_back1:
+	ldi temp, 7
+	and ansi_val2, temp		; Set background color
+	mov colors_bg, ansi_val2
+
+ansi_second_color:
+	; Same check for second value
+	;
+	ldi temp, 30
+	cp temp, ansi_val1		; Is the value color?
+	brsh ansi_checkback_2
+
+	; Any value lower than 30 just resets to original.
+	; Spec says only 0, but we cut few corners...
+	;
+	ldi temp, MY_COLOR
+	mov colors_fg, temp
+	clr colors_bg
+	rjmp ansi_color_done
+
+ansi_checkback_2:
+	ldi temp, 40			; Is value background color?
+	cp temp, ansi_val1
+	brsh ansi_color_back2
+
+	ldi temp, 7
+	and ansi_val1, temp		; Set foreground color
+	mov colors_fg, ansi_val1
+	rjmp ansi_color_done
+
+ansi_color_back2:
+	ldi temp, 7
+	and ansi_val1, temp		; Set background color
+	mov colors_bg, ansi_val1
+
+ansi_color_done:
+	clr ansi_state			; Done setting colors
+	rjmp wait_hsync			; Wait for HSYNC
 
 scroll_later:
 	; We're scrolling. Clear the "last line on screen"
