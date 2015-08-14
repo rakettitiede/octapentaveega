@@ -1,34 +1,44 @@
-Attiny85 VGA ISNA escape codes:
+Attiny85 VGA ANSI escape codes:
 ===============================
 
-(ISNA = IS Not ANSI :)
+Attiny85 VGA supports a limited subset of ANSI escapes.
 
-Attiny85-vga UART receiver goes into command-mode whenever
-"Escape" 0x1B (ascii 27 / ESC) character is encountered. Sending multiple ESC
-characters consecutively has same effect as sending just one.
+ANSI sequence begins when "Escape" 0x1B (ascii 27 / ESC) character
+followed by [ character is encountered.
 
-2nd byte			command
-===========================================
-bits	7..5	4..0
+Following ANSI escapes are supported:
+-----------------------------------------------------------------------------
+Move cursor location		<ESC>[#row#;#column#H	#row# = 0 .. 13
+				<ESC>[#row#;#column#f	#colunn# = 0 .. 31
 
-	000	<command>	Basic command-set, where <command> is:
-				1:	Clear screen and move
-					cursor to 0,0.
-				27:	command-mode (ESC)
+Leaving both values undefined moves to (0,0):
+<ESC>[H is equal to <ESC>[0;0H
 
-	001	<color>		Change color to <color>. Color will stay
-				selected until it is changed again. Clear 
-				screen -command resets the color back to
-				default.
+Moving cursor outside defined area has undefined effect.
+-----------------------------------------------------------------------------
+Clear screen and move cursor	<ESC>[2J
+to upper left corner (0,0)
+-----------------------------------------------------------------------------
+Set colors (or reset to		<ESC>[#color#;#color#m
+default color). Selected
+color will stay active until
+reset or new color selected.
 
-	010	ignored		Expect ANSI-escape -code
+#color# = color number		Foreground	Background
+	black			   30		   40
+	red			   31		   41
+	green			   32		   42
+	yellow			   33		   43
+	blue			   34		   44
+	magenta			   35		   45
+	cyan			   36		   46
+	white			   37		   47
+	reset to defaults	   0
 
-	100	<X>		Move cursor X-coordinate to <X> 
-				(0..31). Y-coordinate unaffected.
+Color command supports maximum two arguments. Suggested way is to use
+value 0 only alone in a command: <ESC>[0m resets colors to default.
 
-	101	<Y>		Move cursor Y-coordinate to <Y>
-				(0..13). X-coordinate unaffected
+Example: <ESC>[34;47m activates blue text with white background color.
+-----------------------------------------------------------------------------
 
-	110	<ext>		Extended command-set, where <ext> is:
-				1:	Wrap enabled.
-				2:	Wrap disabled.
+<ESC><ESC> sends ASCII character 27 to screen.
