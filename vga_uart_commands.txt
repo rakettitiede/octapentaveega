@@ -40,5 +40,17 @@ value 0 only alone in a command: <ESC>[0m resets colors to default.
 
 Example: <ESC>[34;47m activates blue text with white background color.
 -----------------------------------------------------------------------------
+Disable wrap at the end		<ESC>[=7l	(lowercase L)
+of line (cursor stays
+in the last column).
+-----------------------------------------------------------------------------
+Enable wrap at the end		<ESC>[=7h
+of line (cursor advances
+to next line). Default
+mode.
+-----------------------------------------------------------------------------
 
-<ESC><ESC> sends ASCII character 27 to screen.
+<ESC><ESC> dismisses parsing of ANSI escape and stores ASCII character 27
+(ESC) to screen buffer at cursor location.
+
+
