@@ -354,13 +354,24 @@ ansi_command:
 	rjmp wait_hsync
 
 ansi_move_xy:
-	clr cursor_hi
+	clr cursor_hi			; Calculate cursor location
 	mov cursor_lo, ansi_val2
-	swap cursor_lo
-	lsl cursor_lo
-	rol cursor_hi
+	swap cursor_lo			; Shift left 4 times
+	lsl cursor_lo			; shift once more = * 32
+	rol cursor_hi			; push high bit to cursor_hi
 	add cursor_lo, ansi_val1
 
+	add cursor_lo, scroll_lo	; Add scroll offset to
+	adc cursor_hi, scroll_hi	; cursor
+
+	cpi cursor_lo, 192		; check overflow
+	cpc cursor_hi, one
+	brlo no_move_overflow
+
+	subi cursor_lo, 192		; compensate overflow
+	sbc cursor_hi, one
+
+no_move_overflow:
 	clr ansi_state
 	rjmp wait_hsync
 
