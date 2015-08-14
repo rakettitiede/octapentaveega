@@ -355,12 +355,12 @@ ansi_command:
 
 ansi_move_xy:
 	clr cursor_hi
-	swap ansi_val2
-	lsl ansi_val2
-	rol cursor_hi
-	add ansi_val2, ansi_val1
-	adc cursor_hi, zero
 	mov cursor_lo, ansi_val2
+	swap cursor_lo
+	lsl cursor_lo
+	rol cursor_hi
+	add cursor_lo, ansi_val1
+
 	clr ansi_state
 	rjmp wait_hsync
 
