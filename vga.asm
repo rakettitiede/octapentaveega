@@ -26,11 +26,11 @@
 ;                          |   AT   |
 ; 20MHz CLOCK -------- PB3 |   TI   | PB2 -- VSYNC
 ;                          |   NY   |
-;             HSYNC -- PB4 |        | PB1 -------------------+--[470]-- RED
-;                          |   85   |                        |
-;                      GND |        | PB0 -- UART (TX Only)  +--[470]-- GREEN
-;                          `--------´                        |
-;                                                            `--[470]-- BLUE
+;             HSYNC -- PB4 |        | PB1 ------------+--[470]-- RED
+;                          |   85   |                 |
+;                      GND |        | PB0 -- RX UART  +--[470]-- GREEN
+;                          `--------´                 |
+;                                                     `--[470]-- BLUE
 ;
 
 .include "tn85def.inc"
