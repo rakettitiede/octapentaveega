@@ -78,7 +78,6 @@
 ; 0 : None
 ; 1 : ESC received
 ; 2 : Opening bracket "[" received
-; 3 : Semicolon ";" received (use two values)
 
 
 ; Constants
@@ -304,17 +303,77 @@ handle_ansi:
 	;
 	ldi temp, 91			; Ascii 91 = [
 	cpse uart_buf, temp		; Was next character bracket?
-	rjmp unknown_ansi		; No it was not :(
+	rjmp unknown_ansi		; No it was not..
+
+	ldi ansi_state, 2		; Got bracket
+	rjmp wait_hsync			; Go wait for HSYNC
 
 ansi_data:
-	; Handle values and commands
+	; Handle ANSI values and commands.
+	; If command has multiple values separated by semicolon
+	; we only store the last two
 	;
-	sbr state, st_clear_val		; Initiate clear mode
-	clr clear_cnt			; Clear counter zeroed
-	ldi XL, low(drawbuf)		; Start from the beginning
-	ldi XH, high(drawbuf)		; of SRAM
+	cpi uart_buf, 59		; Ascii 59 = ;
+	brne ansi_notsemi		; Was not semicolon
+
+	mov ansi_val2, ansi_val1	; Move data to 2nd buffer
+	clr ansi_val1			; And clear 1st buffer
+	rjmp wait_hsync
+
+ansi_notsemi:
+	; Was not semicolon. Check if we got number or command
+	;
+	cpi uart_buf, 65		; Crude separation to numbers & letters
+	brsh ansi_command		; It's command letter
+
+ansi_value:
+	; Value parser
+	;
+	mov temp, ansi_val1		; Multiply existing value by 10
+	lsl ansi_val1			; ((n << 2) + n) << 1
+	lsl ansi_val1
+	add ansi_val1, temp
+	lsl ansi_val1
+
+	subi uart_buf, 48		; Subtract ascii value for "0"
+	add ansi_val1, uart_buf		; Add result to value
+
+	rjmp wait_hsync			; Wait for HSYNC
+
+ansi_command:
+	; Parse ANSI command
+	;
+	cpi uart_buf, 72		; H = move cursor
+	breq ansi_move_xy
+	cpi uart_buf, 102		; f = move cursor
+	breq ansi_move_xy
+
+	;
+	; Unknown, dismiss ANSI
 	clr ansi_state
 	rjmp wait_hsync
+
+ansi_move_xy:
+	clr cursor_hi
+	swap ansi_val1
+	lsl ansi_val1
+	rol cursor_hi
+	add ansi_val1, ansi_val2
+	adc cursor_hi, zero
+	mov cursor_lo, ansi_val1
+	clr ansi_state
+	rjmp wait_hsync
+
+; Screen clear
+;
+;	sbr state, st_clear_val		; Initiate clear mode
+;	clr clear_cnt			; Clear counter zeroed
+;	ldi XL, low(drawbuf)		; Start from the beginning
+;	ldi XH, high(drawbuf)		; of SRAM
+;	clr ansi_state
+;	rjmp wait_hsync
+
+
 
 unknown_ansi:
 	; Unknown command after ESC. Just print it to buffer.
@@ -323,9 +382,9 @@ unknown_ansi:
 	rjmp not_special
 
 handle_esc:
-	mov ansi_state, one		; Set ANSI parsing mode on
-	clr ansi_val1			; Clear ANSI value 
-	clr ansi_val2			; Clear second ANSI value
+	ldi ansi_state, 1		; Set ANSI parsing mode on
+	clr ansi_val1			; Clear ANSI values
+	clr ansi_val2			; Clear ANSI values
 	rjmp wait_hsync
 
 handle_cr_or_lf:
