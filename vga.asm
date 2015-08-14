@@ -293,6 +293,52 @@ uart_gotdata:
 
 	rjmp not_special
 
+handle_esc:
+	ldi ansi_state, 1		; Set ANSI parsing mode on
+	clr ansi_val1			; Clear ANSI values
+	clr ansi_val2			; Clear ANSI values
+	rjmp wait_hsync
+
+handle_cr_or_lf:
+	andi cursor_lo, 224		; First column
+	adiw cursor_hi:cursor_lo, 32	; Next line
+	rjmp check_cursor_ovf
+
+not_special:
+	ldi YL, low(screenbuf)		; Get screenbuffer address
+	ldi YH, high(screenbuf)
+	add YL, cursor_lo		; Move pointer to cursor
+	adc YH, cursor_hi		; location
+	st Y, uart_buf			; Store byte
+	adiw cursor_hi:cursor_lo, 1	; Increase cursor location
+
+check_cursor_ovf:
+	; Check if cursor overflows the screen buffer
+	;
+	cpi cursor_lo, 192		; Check buffer end
+	cpc cursor_hi, one
+	brne check_scroll		; Check if we need to scroll
+
+	clr cursor_lo			; End of buffer reached,
+	clr cursor_hi			; go back to beginning
+
+check_scroll:
+	; If cursor position matches the scroll offset, we're at the
+	; end of screen and need to scroll.
+	; TODO: If wrap mode disabled, don't scroll!
+	;
+	cp scroll_lo, cursor_lo
+	cpc scroll_hi, cursor_hi	; Cursor at the scroll position?
+	breq scroll_screen		; Yes, then we scroll
+	rjmp wait_hsync			; If not, just wait HSYNC
+
+scroll_screen:
+	; We don't have enough time to scroll now, set scroll to happen
+	; later, without loop
+	;
+	sbr state, st_scroll_val	; Set scrolling to happen later
+	rjmp wait_hsync
+
 handle_ansi:
 	; ANSI Escape handling
 	;
@@ -347,6 +393,8 @@ ansi_command:
 	breq ansi_move_xy
 	cpi uart_buf, 102		; f = move cursor
 	breq ansi_move_xy
+	cpi uart_buf, 74		; J = clear screen
+	breq ansi_clear_screen
 
 	;
 	; Unknown, dismiss ANSI
@@ -375,16 +423,24 @@ no_move_overflow:
 	clr ansi_state
 	rjmp wait_hsync
 
-; Screen clear
-;
-;	sbr state, st_clear_val		; Initiate clear mode
-;	clr clear_cnt			; Clear counter zeroed
-;	ldi XL, low(drawbuf)		; Start from the beginning
-;	ldi XH, high(drawbuf)		; of SRAM
-;	clr ansi_state
-;	rjmp wait_hsync
+ansi_clear_screen:
+	; Screen clear
+	;
+	ldi temp, 2			; Check value
+	cp ansi_val1, temp		; 2J = clear screen
+	breq ansi_commence_clear
+	clr ansi_state			; Dismiss, invalid number
+	rjmp wait_hsync
 
-
+ansi_commence_clear:
+	; 2J received, clear the screen when we have time
+	;
+	sbr state, st_clear_val		; Initiate clear mode
+	clr clear_cnt			; Clear counter zeroed
+	ldi XL, low(drawbuf)		; Start from the beginning
+	ldi XH, high(drawbuf)		; of SRAM
+	clr ansi_state
+	rjmp wait_hsync
 
 unknown_ansi:
 	; Unknown command after ESC. Just print it to buffer.
@@ -392,51 +448,6 @@ unknown_ansi:
 	clr ansi_state
 	rjmp not_special
 
-handle_esc:
-	ldi ansi_state, 1		; Set ANSI parsing mode on
-	clr ansi_val1			; Clear ANSI values
-	clr ansi_val2			; Clear ANSI values
-	rjmp wait_hsync
-
-handle_cr_or_lf:
-	andi cursor_lo, 224		; First column
-	adiw cursor_hi:cursor_lo, 32	; Next line
-	rjmp check_cursor_ovf
-
-not_special:
-	ldi YL, low(screenbuf)		; Get screenbuffer address
-	ldi YH, high(screenbuf)
-	add YL, cursor_lo		; Move pointer to cursor
-	adc YH, cursor_hi		; location
-	st Y, uart_buf			; Store byte
-	adiw cursor_hi:cursor_lo, 1	; Increase cursor location
-
-check_cursor_ovf:
-	; Check if cursor overflows the screen buffer
-	;
-	cpi cursor_lo, 192		; Check buffer end
-	cpc cursor_hi, one
-	brne check_scroll		; Check if we need to scroll
-
-	clr cursor_lo			; End of buffer reached,
-	clr cursor_hi			; go back to beginning
-
-check_scroll:
-	; If cursor position matches the scroll offset, we're at the
-	; end of screen and need to scroll.
-	; TODO: If wrap mode disabled, don't scroll!
-	;
-	cp scroll_lo, cursor_lo
-	cpc scroll_hi, cursor_hi	; Cursor at the scroll position?
-	breq scroll_screen		; Yes, then we scroll
-	rjmp wait_hsync			; If not, just wait HSYNC
-
-scroll_screen:
-	; We don't have enough time to scroll now, set scroll to happen
-	; later, without loop
-	;
-	sbr state, st_scroll_val	; Set scrolling to happen later
-	rjmp wait_hsync
 
 scroll_later:
 	; We're scrolling. Clear the "last line on screen"
