@@ -43,8 +43,8 @@
 .def uart_next		= r6		; Next UART sequence
 .def clear_cnt		= r7		; Screen clear counter
 .def uart_byte		= r8		; UART receiving counter & data
-.def colors_fg		= r9		; Foreground color
-.def colors_bg		= r10		; Background (4..7) color
+.def color_fg		= r9		; Foreground color
+.def color_bg		= r10		; Background (4..7) color
 .def ansi_val1		= r11		; Storage for ANSI cmd value
 .def ansi_val2		= r12		; Storage for ANSI cmd value
 .def vline_lo		= r13		; Vertical line low byte
@@ -83,7 +83,7 @@
 
 ; Constants
 ;
-.equ MY_COLOR	= 7			; Color bits. 7 = all (single attiny)
+.equ COLOR_BIT	= 2			; Color bit (2 = blue, 1 = green, 0 = red)
 .equ UART_WAIT	= 130			; HSYNC timer value where we start looking
 					; for UART samples (or handle received data)
 .equ HSYNC_WAIT	= 157			; HSYNC value where we start precalculating
@@ -141,6 +141,13 @@ main:
 	; Enable wrap-mode by default
 	;
 	sbr state, st_wrap_val
+
+	; Set default colors
+	;
+	ldi temp, 7
+	mov color_fg, temp		; Default foreground
+	ldi temp, 0	
+	mov color_bg, temp		; Default background
 
 	; Make sure we clear the SRAM first
 	;
@@ -300,17 +307,44 @@ uart_gotdata:
 	rjmp not_special
 
 handle_esc:
+	; ESC received, commence ANSI-escape parsing mode
+	;
 	ldi ansi_state, 1		; Set ANSI parsing mode on
 	clr ansi_val1			; Clear ANSI values
 	clr ansi_val2			; Clear ANSI values
 	rjmp wait_hsync
 
 handle_cr_or_lf:
+	; We treat CR and LF the same
+	;
 	andi cursor_lo, 224		; First column
 	adiw cursor_hi:cursor_lo, 32	; Next line
 	rjmp check_cursor_ovf
 
 not_special:
+	; Not special, store character into buffer
+	;
+	mov temp, color_fg
+	sbrs temp, COLOR_BIT		; skip if fg_color has our bit.
+	rjmp no_fg_match
+
+	mov temp, color_bg		; Check if bg_color has our bit.
+	sbrc temp, COLOR_BIT		; Skip next if it does not (store byte as-is)
+	ldi uart_buf, 160		; Fore & background matches = reverse space
+	rjmp store_char_to_buffer
+
+no_fg_match:
+	mov temp, color_bg		; Check if bg_color has our bit.
+	sbrs temp, COLOR_BIT
+	rjmp no_fg_bg_match		; Neither fore or background matches.
+
+	ori uart_buf, 128		; Only background matches, reverse char
+	rjmp store_char_to_buffer
+
+no_fg_bg_match:
+	ldi uart_buf, 32		; Store space if color doesn't match
+
+store_char_to_buffer:
 	ldi YL, low(screenbuf)		; Get screenbuffer address
 	ldi YH, high(screenbuf)
 	add YL, cursor_lo		; Move pointer to cursor
@@ -495,66 +529,41 @@ unknown_ansi:
 ansi_set_color:
 	; Set colors. We do same check for both values.
 	;
+	cp ansi_val1, zero		; Reset colors?
+	breq ansi_color_reset
+
+ansi_set_color_val:
+	; Only check reset once
+	;
+	ldi temp, 40
+	cp ansi_val1, temp		; Back- or foreground color?
+	brlo ansi_color_fg		; Set foreground
+
+	sub ansi_val1, temp		; Get real color value
+	mov color_bg, ansi_val1		; Set it as background
+	rjmp ansi_color_next
+
+ansi_color_fg:
+	; Color was foreground
+	; 
+	ldi temp, 30
+	sub ansi_val1, temp		; Get real color value
+	mov color_fg, ansi_val1		; Move it to foreground color
+
+ansi_color_next:
 	ldi temp, 3
-	cpse ansi_state, temp		; Check if we have 2 values?
-	rjmp ansi_second_color		; Nope, jump to "second" == first value
+	cpse ansi_state, temp		; Check for more values
+	rjmp ansi_done			; No more values, we're done
 
-	ldi temp, 30
-	cp temp, ansi_val2		; Is the value color?
-	brsh ansi_checkback_1
+	mov ansi_val1, ansi_val2	; Copy second value
+	dec ansi_state			; No more values (max 2)
+	rjmp ansi_set_color_val		; Do it again
 
-	; Any value lower than 30 just resets to original.
-	; Spec says only 0, but we cut few corners...
-	;
-	ldi temp, MY_COLOR
-	mov colors_fg, temp
-	clr colors_bg
-	rjmp ansi_second_color
-
-ansi_checkback_1:
-	ldi temp, 40			; Is value background color?
-	cp temp, ansi_val2
-	brsh ansi_color_back1
-
+ansi_color_reset:
 	ldi temp, 7
-	and ansi_val2, temp		; Set foreground color
-	mov colors_fg, ansi_val2
-	rjmp ansi_second_color
-
-ansi_color_back1:
-	ldi temp, 7
-	and ansi_val2, temp		; Set background color
-	mov colors_bg, ansi_val2
-
-ansi_second_color:
-	; Same check for second value
-	;
-	ldi temp, 30
-	cp temp, ansi_val1		; Is the value color?
-	brsh ansi_checkback_2
-
-	; Any value lower than 30 just resets to original.
-	; Spec says only 0, but we cut few corners...
-	;
-	ldi temp, MY_COLOR
-	mov colors_fg, temp
-	clr colors_bg
-	rjmp ansi_done
-
-ansi_checkback_2:
-	ldi temp, 40			; Is value background color?
-	cp temp, ansi_val1
-	brsh ansi_color_back2
-
-	ldi temp, 7
-	and ansi_val1, temp		; Set foreground color
-	mov colors_fg, ansi_val1
-	rjmp ansi_done
-
-ansi_color_back2:
-	ldi temp, 7
-	and ansi_val1, temp		; Set background color
-	mov colors_bg, ansi_val1
+	mov color_fg, temp		; Default foreground: white
+	clr color_bg			; Default background: black
+	rjmp ansi_color_next
 
 ansi_done:
 	clr ansi_state			; Done Parsing ANSI
