@@ -1,12 +1,18 @@
-Attiny85 VGA ANSI escape codes:
-===============================
+Attiny85 VGA UART transfer:
+===========================
 
-Attiny85 VGA supports a limited subset of ANSI escapes.
+Ascii-codes 32 .. 159 (decimal) are printed on screen as-is.
+
+CR and LF are both treated as same; cursor is placed into
+the beginning of next line. If cursor is already on last line, 
+screen is scrolled up.
+
+Limited subset of ANSI escapes is supported.
 
 ANSI sequence begins when "Escape" 0x1B (ascii 27 / ESC) character
 followed by [ character is encountered.
 
-Following ANSI escapes are supported:
+List of supported ANSI escapes:
 -----------------------------------------------------------------------------
 Move cursor location		<ESC>[#row#;#column#H	#row# = 0 .. 13
 				<ESC>[#row#;#column#f	#colunn# = 0 .. 31
@@ -14,7 +20,7 @@ Move cursor location		<ESC>[#row#;#column#H	#row# = 0 .. 13
 Leaving both values undefined moves to (0,0):
 <ESC>[H is equal to <ESC>[0;0H
 
-Moving cursor outside defined area has undefined effect.
+Moving cursor outside the specified area has undefined effect.
 -----------------------------------------------------------------------------
 Clear screen and move cursor	<ESC>[2J
 to upper left corner (0,0)
@@ -39,6 +45,8 @@ Color command supports maximum two arguments. Suggested way is to use
 value 0 only alone in a command: <ESC>[0m resets colors to default.
 
 Example: <ESC>[34;47m activates blue text with white background color.
+
+Using other than supported color numbers has undefined effect.
 -----------------------------------------------------------------------------
 Disable wrap at the end		<ESC>[=7l	(lowercase L)
 of line (cursor stays
@@ -50,7 +58,7 @@ to next line). Default
 mode.
 -----------------------------------------------------------------------------
 
-<ESC><ESC> dismisses parsing of ANSI escape and stores ASCII character 27
-(ESC) to screen buffer at cursor location.
+<ESC> followed by any other character than '[' stores the character as-is
+to screen buffer, allowing to display special characters on screen.
 
 
