@@ -2,8 +2,8 @@
 ;;                                                                             ;;
 ;;   32 x 14 character VGA output with UART for Attiny85.                      ;;
 ;;                                                                             ;;
-;;                                                                             ;;
 ;;   Copyright 2015 Jari Tulilahti                                             ;;
+;;                                                                             ;;
 ;;                                                                             ;;
 ;;   Licensed under the Apache License, Version 2.0 (the "License");           ;;
 ;;   you may not use this file except in compliance with the License.          ;;
@@ -97,7 +97,6 @@
 
 ; Constants
 ;
-.equ COLOR_BIT	= 2			; Color bit (2 = blue, 1 = green, 0 = red)
 .equ UART_WAIT	= 130			; HSYNC timer value where we start looking
 					; for UART samples (or handle received data)
 .equ HSYNC_WAIT	= 157			; HSYNC value where we start precalculating
