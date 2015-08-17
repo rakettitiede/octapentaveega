@@ -55,7 +55,7 @@ flash:  all
 fuse:
 	$(AVRDUDE) $(FUSES)
  
-install: flash fuse
+install: fuse flash
  
 clean:
 	rm -f *.hex *.obj *.lst *.cof *~
