@@ -389,8 +389,38 @@ uart_gotdata:
 	breq handle_cr_or_lf
 	cpi uart_buf, 10		; Special case: LF
 	breq handle_cr_or_lf
+	cpi uart_buf, 8			; Special case: BS
+	breq handle_bs
 
 	rjmp not_special
+
+handle_bs:
+	; Backspace
+	;
+	cp scroll_lo, cursor_lo
+	cpc scroll_hi, cursor_hi	; Cursor at 0,0?
+	breq backspace_done		; Yes. Do nothing
+
+
+	cp cursor_lo, zero
+	cpc cursor_hi, zero
+	brne backspace_no_ovf		; No overflow
+
+	ldi cursor_lo, 192		; Reset cursor location
+	ldi cursor_hi, 1
+
+backspace_no_ovf:
+	sbiw cursor_hi:cursor_lo, 1 	; Move cursor backwards
+	ldi uart_buf, 32
+	ldi YL, low(screenbuf)		; Get screenbuffer address
+	ldi YH, high(screenbuf)
+	add YL, cursor_lo		; Move pointer to cursor
+	adc YH, cursor_hi		; location
+	st Y, uart_buf			; Store byte
+
+backspace_done:
+	rjmp wait_hsync
+
 
 handle_esc:
 	; ESC received, commence ANSI-escape parsing mode
