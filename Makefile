@@ -30,9 +30,9 @@ ifeq ($(VGACOLOR),red)
 else
 	FUSES = -B 12 -U lfuse:w:0xa0:m -U hfuse:w:0xdf:m -U efuse:w:0xff:m # Clock in to PB3, clock out from PB4, slow startup
 	ifeq ($(VGACOLOR),green)
-		AVRAFLAGS = --define COLOR_BIT=1
+		AVRAFLAGS = --define VGA_SLAVE --define COLOR_BIT=1
 	else
-		AVRAFLAGS = --define COLOR_BIT=2
+		AVRAFLAGS = --define VGA_SLAVE --define COLOR_BIT=2
 	endif
 endif
 

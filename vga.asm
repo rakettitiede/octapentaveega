@@ -144,6 +144,14 @@ screen_end:
 .cseg
 .org 0x00
 
+; Only two vectors used, RESET and INT0 for slaves
+;
+vectors:
+	rjmp main
+.ifdef VGA_SLAVE
+	rjmp slave_sync
+.endif
+
 main:
 	; Set default values to registers
 	;
@@ -171,14 +179,75 @@ main:
 
 	; Set GPIO directions
 	;
-	sbi DDRB, VSYNC_PIN
-	sbi DDRB, RGB_PIN
+.ifdef VGA_MASTER
+
 	sbi DDRB, HSYNC_PIN
+	sbi DDRB, VSYNC_PIN
+.else
+	cbi DDRB, VSYNC_PIN
+.endif
+	sbi DDRB, RGB_PIN
 	cbi DDRB, UART_PIN
 
 	; Set USI mode
 	;
 	sbi USICR, USIWM0
+
+
+.ifdef VGA_SLAVE
+
+	slave_setup:
+		; Slave synchronization happens with INT0, which listens
+		; to falling edge of VSYNC. We also put the slave to
+		; sleep-mode IDLE, from sleep we get jitter-free jump
+		; to ISR. We never return from ISR and we don't use stack
+		; so we don't care about stack pointer nor the return
+		; address in stack. 
+		;
+
+		ldi ZH, 255
+		ldi ZL, 255
+
+	wait_a_bit:
+		sbiw ZH:ZL, 1
+		brne wait_a_bit
+
+		ldi temp, (1 << INT0)
+		out GIMSK, temp		; Enable INT0
+
+		ldi temp, (1 << SE) | (1 << ISC01)
+		out MCUCR, temp		; Enable sleep and edge INT0
+
+		sei			; Enable interrupts
+
+		sleep			; Go to sleep
+
+	slave_sync:
+		; We continue here after INT0 has triggered.
+		;
+		cli
+		out GIMSK, zero		; Disable interrupts
+
+		; Sync vertical line
+		;
+		ldi temp, 225
+		mov vline_lo, temp
+		mov vline_hi, one
+
+		; Delay for final sync
+		;
+		ldi temp, 192
+	slave_wait:
+		dec temp
+		brne slave_wait
+
+		nop
+		nop
+		nop
+		nop
+		nop
+
+.endif
 
 
 set_timers:
@@ -213,11 +282,15 @@ set_timers:
 	ldi temp, JITTERVAL
 	out TCNT0, temp
 
+
+.ifdef VGA_MASTER
 	; We jump to the end of the VGA routine, setting
 	; sane values for the registers for first screen.
-	; screen_done jumps back to wait_uart
+	; screen_done jumps back to wait_uart. Only
+	; for master, as it messes the slave-sync.
 	;
 	rjmp screen_done
+.endif
 
 wait_uart:
 	; Wait for HSYNC timer to reach specified value
@@ -859,7 +932,9 @@ housekeep_done:
 
 vertical_sync:
 	; Check if we need to switch VSYNC low
+	; Only Master does this.
 	;
+.ifdef VGA_MASTER
 	ldi temp, VSYNC_LOW
 	cp vline_lo, temp		; Low (478)
 	cpc vline_hi, one		; High (478)
@@ -876,6 +951,7 @@ check_vsync_high:
 	brne check_vlines
 	sbi PORTB, VSYNC_PIN		; Vsync high
 	rjmp wait_uart
+.endif
 
 check_vlines:
 	; Have we done 525 lines?
