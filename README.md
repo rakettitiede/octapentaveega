@@ -6,4 +6,6 @@ Data is read from UART at 9600bps. Subset of ANSI escapes is supported.
 
 Wiring 3 Attinys together gets you 8 color output :)
 
+...work in progress, documentation appears in http://labs.rakettitiede.com/language/en/ when done.
+
 //Jartza
