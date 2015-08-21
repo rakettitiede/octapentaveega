@@ -16,6 +16,8 @@ $(call check-var-defined,VGACOLOR)
 # are "slaves", just listening to UART and drawing pixels. Syncing happens
 # connecting HSYNC (PB4) of master to PB0 of slaves. 
 # 
+# Leaving VGACOLOR undefined compiles "red" (master) by default
+# 
 # Master can be used standalone if you only need B/W output.
 # 
 # Oscillator clock (20MHz) connects like following:
