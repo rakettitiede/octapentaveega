@@ -205,12 +205,22 @@ main:
 		; address in stack. 
 		;
 
-		ldi ZH, 255
-		ldi ZL, 255
+		; First we delay for a moment - waiting for the power to 
+		; stabilize and giving master some time to start VSYNC
+		; properly
+
+		ldi temp, 16
+
+	waiting:
+		clr ZH
+		clr ZL
 
 	wait_a_bit:
 		sbiw ZH:ZL, 1
 		brne wait_a_bit
+
+		dec temp
+		brne waiting		; Loop 65536 * temp times
 
 		ldi temp, (1 << INT0)
 		out GIMSK, temp		; Enable INT0
