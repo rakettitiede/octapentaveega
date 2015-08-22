@@ -207,7 +207,7 @@ main:
 
 		; First we delay for a moment - waiting for the power to 
 		; stabilize and giving master some time to start VSYNC
-		; properly
+		; properly (50 millisecondish delay)
 
 		ldi temp, 16
 
@@ -217,10 +217,10 @@ main:
 
 	wait_a_bit:
 		sbiw ZH:ZL, 1
-		brne wait_a_bit
+		brne wait_a_bit		; Loop 65536 times
 
 		dec temp
-		brne waiting		; Loop 65536 * temp times
+		brne waiting		; Loop 65536 * 16 times
 
 		ldi temp, (1 << INT0)
 		out GIMSK, temp		; Enable INT0

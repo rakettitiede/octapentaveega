@@ -1,3 +1,9 @@
+#
+# Quick'n'Dirty Font Reorganizer for Attiny85 VGA.
+# 
+# (C) 2015 Jari Tulilahti
+#
+
 font = [
 	0xC7, 0xBF, 0x0F, 0xBF, 0x0F, 0xBF, 0xC7, 0xFF,
 	0x77, 0xFF, 0x77, 0x77, 0x77, 0x77, 0x87, 0xFF,
@@ -294,7 +300,7 @@ for i in range(8):
 		print "0x{0:02x}".format(fontline),
 		cnt += 1
 		if cnt == 8:
-			if h == 255 and i == 7:
+			if [h, i] == [255, 7]:
 				print
 			else:
 				print "\n\t.db ",
