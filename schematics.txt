@@ -7,7 +7,7 @@ Simplified schematics for B/W VGA (Master only):
                           |   NY   |               |
              HSYNC -- PB4 |        | PB1 ----------o--[470]-- BLUE
                           |   85   |
-                      GND |        | PB0 -----+---- RX UART
+                      GND |        | PB0 -----o---- RX UART
                           `--------´          |
                                               `-----[10k]---- VCC
                                                    (pullup)
