@@ -264,9 +264,15 @@ set_timers:
 	; HSYNC timer. Prescaler 4, Compare value = 159 = 31.8us
 	; We generate HSYNC pulse with PWM
 	;
-	ldi temp, (1 << CTC1) | (1 << CS10) | (1 << CS11);
+	ldi temp, (1 << CS10) | (1 << CS11);
 	out TCCR1, temp
+
+	; Slave has comparator B disconnected from output pin
+.ifdef VGA_MASTER
 	ldi temp, (1 << PWM1B) | (1 << COM1B1)
+.else
+	ldi temp, (1 << PWM1B)
+.endif
 	out GTCCR, temp
 	ldi temp, 130
 	out OCR1A, temp
