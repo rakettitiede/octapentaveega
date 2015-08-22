@@ -40,7 +40,7 @@ endif
 
 # Change this to reflect your programmer
 #
-PROGRAMMER = -c usbasp -B 12
+PROGRAMMER = -c usbasp
 
 # Don't change below
 #

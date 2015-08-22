@@ -464,7 +464,8 @@ no_fg_match:
 	sbrs temp, COLOR_BIT
 	rjmp no_fg_bg_match		; Neither fore or background matches.
 
-	ori uart_buf, 128		; Only background matches, reverse char
+	ldi temp, 128
+	eor uart_buf, temp		; Only background matches, reverse char
 	rjmp store_char_to_buffer
 
 no_fg_bg_match:
