@@ -107,8 +107,6 @@ rndclear()
 # Draw some worms in the screen
 for z in xrange(300):
 	for worm in worms:
-		if (z % 100) == 0:
-			serwrite("\x1B[2J")
 		move = directions[worm["dir"]]
 		worm["x"] = (worm["x"] + move["x"]) % 32
 		worm["y"] = (worm["y"] + move["y"]) % 14
