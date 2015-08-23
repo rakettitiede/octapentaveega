@@ -8,4 +8,8 @@ Wiring 3 Attinys together gets you 8 color output :)
 
 ...work in progress, documentation appears in http://labs.rakettitiede.com/language/en/ when done.
 
+Links:
+* [Video](https://www.dropbox.com/s/wjr7k4ip8j3r82x/MOV_2897.mp4)
+* [Pic](https://drive.google.com/file/d/0B2dTzW9TMeBxVEgtMjREbmVpX0k/view)
+
 //Jartza
