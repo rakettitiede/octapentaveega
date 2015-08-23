@@ -16,9 +16,9 @@ Simplified schematics for B/W VGA (Master only):
 
 Simplified three-color setup schematics:
 
-
-                    (pullup)      .---__---.
-                VCC --[10k]-- PB5 |        | VCC -- +5V 
+                                                   .--|0.1uF|-- GND       
+                 (pullup)         .---__---.       |                      
+              VCC --[10k]---- PB5 |        | VCC --o-- +5V                
                                   |   AT   |             
          20MHz CLOCK -------- PB3 |   TI   | PB2 --------------------. 
                                   |   NY   |                         |     
@@ -29,9 +29,9 @@ Simplified three-color setup schematics:
             |                                                        |   |
             |                                                        |   |
             |                                                        |   |
-            |                                                        |   |
-            |       (pullup)      .---__---.                         |   |
-            |   VCC --[10k]-- PB5 |        | VCC -- +5V              |   |
+            |                                      .--|0.1uF|-- GND  |   |
+            |    (pullup)         .---__---.       |                 |   |
+            | VCC --[10k]---- PB5 |        | VCC --o-- +5V           |   |
             |                     |   AT   |                         |   |
             `---------------- PB3 |   TI   | PB2 --------------------o   |
                                   |   NY   |                         |   |
@@ -40,11 +40,11 @@ Simplified three-color setup schematics:
             |                 GND |        | PB0 ------------------------o
             |                     `--------´                         |   |
             |                                                        |   |
-            | (Switch closed while flashing slaves)                  |   |
-            |       .-----|SWITCH|---GND                             |   |
-            |       |                                                |   |
-            |       | (pullup)    .---__---.                         |   |
-            | VCC --o-[10k]-- PB5 |        | VCC -- +5V              |   |
+            |       (Switch closed while flashing slaves)            |   |
+            |             .-----|SWITCH|---GND                       |   |
+            |             |                        .--|0.1uF|-- GND  |   |
+            |    (pullup) |       .---__---.       |                 |   |
+            | VCC --[10k]-o-- PB5 |        | VCC --o-- +5V           |   |
             |                     |   AT   |                         |   |
             `---------------- PB3 |   TI   | PB2 --------------------o------ VSYNC
                                   |   NY   |                             |
