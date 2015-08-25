@@ -49,10 +49,10 @@ AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE)
 COMPILE = avra $(AVRAFLAGS)
 
 # symbolic targets:
-all:    vga.hex
+all:    vga-$(VGACOLOR).hex
 
 flash:  all
-	$(AVRDUDE) -U flash:w:vga.hex:i
+	$(AVRDUDE) -U flash:w:vga-$(VGACOLOR).hex:i
  
 fuse:
 	$(AVRDUDE) $(FUSES)
@@ -62,5 +62,6 @@ install: fuse flash
 clean:
 	rm -f *.hex *.obj *.lst *.cof *~
  
-vga.hex: vga.asm font.inc tn85def.inc
+vga-red.hex vga-blue.hex vga-green.hex: vga.asm font.inc tn85def.inc
 	$(COMPILE) -l vga.lst vga.asm
+	mv vga.hex vga-$(VGACOLOR).hex
