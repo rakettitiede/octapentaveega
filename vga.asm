@@ -468,7 +468,7 @@ store_char_to_buffer:
 	ldi YH, high(screenbuf)
 	add YL, cursor_lo		; Move pointer to cursor
 	adc YH, cursor_hi		; location
-	st Y, uart_buf			; Store byte
+	st Y+, uart_buf			; Store byte
 
 	sbrs state, st_wrap		; Check wrap mode
 	rjmp no_wrap_increase		; Non-wrap mode
@@ -591,12 +591,12 @@ ansi_move_xy:
 	add cursor_lo, scroll_lo	; Add scroll offset to
 	adc cursor_hi, scroll_hi	; cursor
 
-	cpi cursor_lo, 192		; check overflow
-	cpc cursor_hi, one
+	cpi cursor_lo, 192		; check if cursor overflows
+	cpc cursor_hi, one		; the screen buffer
 	brlo no_move_overflow
 
 	subi cursor_lo, 192		; compensate overflow
-	sbc cursor_hi, one
+	sbc cursor_hi, one		; by subtracting 448
 
 no_move_overflow:
 	rjmp ansi_done

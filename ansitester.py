@@ -91,7 +91,7 @@ serwrite("\x1B[=7l") # Disable wrap
 x = 0
 d = 1
 c = 0
-for zz in range(800):
+for zz in range(560):
 	set_color(int(c), int(c - 0.5))
 	move_to(x, 13)
 	serwrite("\x96\x96\x96\x96\x96\x96\x96\x96\n")
@@ -110,7 +110,7 @@ for z in xrange(300):
 		move = directions[worm["dir"]]
 		worm["x"] = (worm["x"] + move["x"]) % 32
 		worm["y"] = (worm["y"] + move["y"]) % 14
-		turn = [0, 0, 0, 1, 2][random.randint(0, 4)]
+		turn = random.choice([1, 2, 0, 0, 0])
 		move_to(worm["x"], worm["y"])
 		set_color(worm["color"])
 		serwrite(chr(move["dirs"][turn]["char"]))
@@ -178,10 +178,11 @@ for x in range(8):
 	move_to(2, x + 6)
 	set_color(7, 0)
 	serwrite("fg {0}".format(x))
+	move_to(8, x + 6)
 	for i in range(8):
-		move_to(8 + (i * 3), x + 6)
 		set_color(x, i)	
-		serwrite("xY")	
+		serwrite("xY")
+		serwrite("\x1B[m ")	
 
 ser.flush()
 ser.close()
