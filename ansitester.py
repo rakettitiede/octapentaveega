@@ -31,8 +31,8 @@ serwrite = lambda x: ser.write(bytearray(map(ord, x)))
 move_to = lambda x, y: serwrite("\x1B[{0};{1}H".format(y, x))
 set_color = lambda fg, bg = 0: serwrite("\x1B[3{0};4{1}m".format(fg, bg))
 
-def rndclear(c = 32):
-	serwrite("\x1B[m") # Reset colors
+def rndclear(c = 32, fg = 7, bg = 0):
+	serwrite("\x1B[3{0};4{1}m".format(fg,bg)) # Set colors
 	for loc in random.sample(xrange(448), 448):
 		move_to(int(loc / 14), loc % 14)
 		serwrite(chr(c))
@@ -85,7 +85,30 @@ worms = [
 
 serwrite("x\x08") # dismiss if we're left in ANSI mode...
 serwrite("\x1B[2J") # Clear screen
+serwrite("\x1B[m") # Reset colors
 serwrite("\x1B[=7l") # Disable wrap
+
+delay = 0.5
+
+for zz in range(200):
+	text = random.choice([
+		'512 bytes RAM\n',
+		'Rakettitiede Oy\n',
+		'This is Attiny85 VGA\n',
+		'8 bits rules!\n',
+		'Jartza made this\n',
+	])
+	space = 16 - (len(text) / 2)
+	spacing = "                "[0:random.randint(1, int(space * 2))]
+	serwrite(spacing)
+	serwrite(text)
+	if delay > 0:
+		time.sleep(delay)
+	if zz % 14 == 0:
+		delay -= 0.1
+
+rndclear(150, 5)
+rndclear()
 
 # Draw color bars
 x = 0
