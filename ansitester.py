@@ -25,7 +25,7 @@ import random
 
 # Change port name to correspond with your UART
 #
-ser = serial.Serial('/dev/cu.usbserial', 9600)
+ser = serial.Serial('/dev/ttyUSB0', 9600)
 
 serwrite = lambda x: ser.write(bytearray(map(ord, x)))
 move_to = lambda x, y: serwrite("\x1B[{0};{1}H".format(y, x))

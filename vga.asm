@@ -1,23 +1,23 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                                             ;;
-;;   32 x 14 character VGA output with UART for Attiny85.                      ;;
-;;                                                                             ;;
-;;   Copyright 2015 Jari Tulilahti                                             ;;
-;;                                                                             ;;
-;;                                                                             ;;
-;;   Licensed under the Apache License, Version 2.0 (the "License");           ;;
-;;   you may not use this file except in compliance with the License.          ;;
-;;   You may obtain a copy of the License at                                   ;;
-;;                                                                             ;;
-;;       http://www.apache.org/licenses/LICENSE-2.0                            ;;
-;;                                                                             ;;
-;;   Unless required by applicable law or agreed to in writing, software       ;;
-;;   distributed under the License is distributed on an "AS IS" BASIS,         ;;
-;;   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ;;
-;;   See the License for the specific language governing permissions and       ;;
-;;   limitations under the License.                                            ;;
-;;                                                                             ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                                                            ;;
+;;  32 x 14 character VGA output with UART for Attiny85.                      ;;
+;;                                                                            ;;
+;;  Copyright 2015 Jari Tulilahti                                             ;;
+;;                                                                            ;;
+;;                                                                            ;;
+;;  Licensed under the Apache License, Version 2.0 (the "License");           ;;
+;;  you may not use this file except in compliance with the License.          ;;
+;;  You may obtain a copy of the License at                                   ;;
+;;                                                                            ;;
+;;      http://www.apache.org/licenses/LICENSE-2.0                            ;;
+;;                                                                            ;;
+;;  Unless required by applicable law or agreed to in writing, software       ;;
+;;  distributed under the License is distributed on an "AS IS" BASIS,         ;;
+;;  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  ;;
+;;  See the License for the specific language governing permissions and       ;;
+;;  limitations under the License.                                            ;;
+;;                                                                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .include "tn85def.inc"
 .include "font.inc"
@@ -57,7 +57,7 @@
 .def scroll_hi		= r20		; Screen scroll offset high
 .def ansi_state		= r21 		; ANSI command states described below
 .def uart_buf		= r22		; UART buffer
-.def state		= r23 		; Bitmask for several states described below
+.def state		= r23 		; Bitmask for states described below
 .def cursor_lo		= r24		; Cursor offset low
 .def cursor_hi		= r25		; Cursor offset high
 					; r26 .. r31 described above
@@ -83,18 +83,19 @@
 
 ; Constants
 ;
-.equ UART_WAIT	= 130			; HSYNC timer value where we start looking
-					; for UART samples (or handle received data)
-.equ HSYNC_WAIT	= 157			; HSYNC value where we start precalculating
+.equ UART_WAIT	= 130			; HSYNC timer value where we start to
+					; look for UART samples (or handle
+					; data received)
+.equ HSYNC_WAIT	= 157			; HSYNC value to start precalculating
 					; the pixels and drawing to screen
-.equ JITTERVAL	= 8			; This must be synced with HSYNC_WAIT value.
+.equ JITTERVAL	= 8			; Must be in sync with HSYNC_WAIT value.
 					; We want Timer0 counter to be 0-4 in
-					; jitterfix label. I used AVR Studio simulator
-					; to sync this value.
+					; jitterfix label. AVR Studio simulator
+					; was used to sync this value.
 .equ VSYNC_LOW	= 480 - 256		; Turn VSYNC low on this vertical line
 .equ VSYNC_HIGH	= VSYNC_LOW + 2		; Turn VSYNC high on this vertical line
 .equ VSYNC_FULL	= 525 - 512		; Full screen is this many lines
-.equ VISIBLE	= 452 - 256		; Visible screen area in vlines (+4 lines)
+.equ VISIBLE	= 452 - 256		; Visible vline count (+4 lines)
 .equ UART_XOR	= 124			; UART sequence magic XORing value
 .equ ALT_XOR	= 32			; Buffer flipping value
 
@@ -331,7 +332,7 @@ uart_receive:
 	;
 	ror uart_seq			; Roll sequence right
 	brcs uart_sample_seq		; If C flag was set, we sample
-	rjmp uart_gotdata		; If not, we check if we have data in buffer
+	rjmp uart_gotdata		; If not, check if we got data in buffer
 
 uart_sample_seq:
 	; We are ready to sample a bit, but first let's
@@ -342,7 +343,7 @@ uart_sample_seq:
 	ldi temp, 3
 	cp uart_seq, temp		; Stop bit sequence
 	brne uart_seq_update
-	clr uart_seq			; Stop bit. Clear uart_seq (wait start bit)
+	clr uart_seq			; Stop bit. Clear uart_seq (wait start)
 	rjmp wait_hsync			; Go wait for hsync
 
 uart_seq_update:
@@ -447,8 +448,8 @@ not_special:
 	rjmp no_fg_match
 
 	mov temp, color_bg		; Check if bg_color has our bit.
-	sbrc temp, COLOR_BIT		; Skip next if it does not (store byte as-is)
-	ldi uart_buf, 160		; Fore & background matches = reverse space
+	sbrc temp, COLOR_BIT		; Skip if it does not (store byte as-is)
+	ldi uart_buf, 160		; fg & bg both match = reverse space
 	rjmp store_char_to_buffer
 
 no_fg_match:
@@ -960,7 +961,8 @@ no_scr_ovf:
 	rjmp wait_uart
 
 housekeep_done:
-	sbiw XH:XL, 32			; Switch screenbuffer back to beginning of line
+	sbiw XH:XL, 32			; Switch screenbuffer back to 
+					; the beginning of line
 	rjmp wait_uart			; Return waiting to UART
 
 vertical_sync:
