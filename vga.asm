@@ -175,6 +175,9 @@ main:
 .endif
 	sbi DDRB, RGB_PIN
 	cbi DDRB, UART_PIN
+	; 
+	; Enable UART PULL-UP
+	sbi PORTB, UART_PIN
 
 	; Set USI mode
 	;
