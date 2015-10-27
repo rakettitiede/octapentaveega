@@ -1,37 +1,37 @@
-;; Font definition file for Attiny85 VGA.
-;; 
-;; ASCII 32-159 characters defined in this file, ascii 0-31 and 160-255 are
-;; reserved for reverse characters and will be overriden with font creation
-;; script.
-;; 
-;; To define font for character, place it's ascii value followed
-;; by equal sign on single line alone, followed by 8 lines containing
-;; 6 character each: (6 x 8 pixel font):
-;; 
-;; dot (.)		no pixel
-;; small x		pixel
-;; 
-;; Copyright 2015 Jari Tulilahti
-;; 
-;; Licensed under the Apache License, Version 2.0 (the "License");
-;; you may not use this file except in compliance with the License.
-;; You may obtain a copy of the License at
-;; 
-;;     http://www.apache.org/licenses/LICENSE-2.0
-;; 
-;; Unless required by applicable law or agreed to in writing, software
-;; distributed under the License is distributed on an "AS IS" BASIS,
-;; WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-;; See the License for the specific language governing permissions and
-;; limitations under the License.
+Font definition file for Attiny85 VGA.
+
+ASCII 32-159 characters defined in this file, ascii 0-31 and 160-255 are
+reserved for reverse characters and will be overriden with font creation
+script.
+
+To define font for character, place it's ascii value followed
+by equal sign on single line alone, followed by 8 lines containing
+6 character each: (6 x 8 pixel font):
+
+dot (.)		no pixel
+small x		pixel
+
+Copyright 2015 Jari Tulilahti
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 
-;;  FONT DEFINITIONS FOLLOWS
-;; 
-;; 
+=======================
+FONT DEFINITIONS START:
+======================= 
 
 
-
+This is space, should be kept blank :)
 32 =
 
 ......
@@ -44,7 +44,7 @@
 ......
 
 
-
+Exclamation mark
 33 =
 
 ..x...
@@ -57,7 +57,7 @@
 ......
 
 
-
+Double quote
 34 =
 
 xx.xx.
@@ -70,7 +70,7 @@ x..x..
 ......
 
 
-
+Hash
 35 =
 
 ......
@@ -83,7 +83,7 @@ xxxxx.
 ......
 
 
-
+Dollar
 36 =
 
 .xxx..
@@ -96,7 +96,7 @@ x.x.x.
 ......
 
 
-
+Percentage
 37 =
 
 xx..x.
@@ -109,7 +109,7 @@ x..xx.
 ......
 
 
-
+Ampersand
 38 =
 
 .x....
@@ -122,7 +122,7 @@ x..x..
 ......
 
 
-
+Apostrophe
 39 =
 
 ..xx..
@@ -135,7 +135,7 @@ x..x..
 ......
 
 
-
+Opening parenthesis
 40 =
 
 ...x..
@@ -148,7 +148,7 @@ x..x..
 ......
 
 
-
+Closing parenthesis
 41 =
 
 .x....
@@ -161,7 +161,7 @@ x..x..
 ......
 
 
-
+Asterisk
 42 =
 
 ......
@@ -174,7 +174,7 @@ x.x.x.
 ......
 
 
-
+Plus
 43 =
 
 ......
@@ -187,7 +187,7 @@ xxxxx.
 ......
 
 
-
+Comma
 44 =
 
 ......
@@ -200,7 +200,7 @@ xxxxx.
 ..x...
 
 
-
+Minus
 45 =
 
 ......
@@ -213,7 +213,7 @@ xxxxx.
 ......
 
 
-
+Dot
 46 =
 
 ......
@@ -226,7 +226,7 @@ xxxxx.
 ......
 
 
-
+Slash
 47 =
 
 ......
@@ -239,7 +239,7 @@ x.....
 ......
 
 
-
+Zero
 48 =
 
 .xxx..
@@ -252,7 +252,7 @@ x...x.
 ......
 
 
-
+One
 49 =
 
 ..x...
@@ -265,7 +265,7 @@ x...x.
 ......
 
 
-
+Two
 50 =
 
 .xxx..
@@ -278,7 +278,7 @@ xxxxx.
 ......
 
 
-
+Three
 51 =
 
 .xxx..
@@ -291,7 +291,7 @@ x...x.
 ......
 
 
-
+Four
 52 =
 
 ...x..
@@ -304,7 +304,7 @@ xxxxx.
 ......
 
 
-
+Five
 53 =
 
 xxxxx.
@@ -317,7 +317,7 @@ x...x.
 ......
 
 
-
+Six
 54 =
 
 .xxx..
@@ -330,7 +330,7 @@ x...x.
 ......
 
 
-
+Seven
 55 =
 
 xxxxx.
@@ -343,7 +343,7 @@ xxxxx.
 ......
 
 
-
+Eight
 56 =
 
 .xxx..
@@ -356,7 +356,7 @@ x...x.
 ......
 
 
-
+Nine
 57 =
 
 .xxx..
@@ -369,7 +369,7 @@ x...x.
 ......
 
 
-
+Colon
 58 =
 
 ......
@@ -382,7 +382,7 @@ x...x.
 ......
 
 
-
+Semicolon
 59 =
 
 ......
@@ -395,7 +395,7 @@ x...x.
 ..x...
 
 
-
+Less than
 60 =
 
 ...x..
@@ -408,7 +408,7 @@ x.....
 ......
 
 
-
+Equals
 61 =
 
 ......
@@ -421,7 +421,7 @@ xxxxx.
 ......
 
 
-
+Greater than
 62 =
 
 .x....
@@ -434,7 +434,7 @@ xxxxx.
 ......
 
 
-
+Question mark
 63 =
 
 .xxx..
@@ -447,7 +447,7 @@ x...x.
 ......
 
 
-
+At sign
 64 =
 
 .xxx..
@@ -460,7 +460,7 @@ x.....
 ......
 
 
-
+Capital A
 65 =
 
 .xxx..
@@ -473,7 +473,7 @@ x...x.
 ......
 
 
-
+Capital B
 66 =
 
 xxxx..
@@ -486,7 +486,7 @@ xxxx..
 ......
 
 
-
+Capital C
 67 =
 
 .xxx..
@@ -499,7 +499,7 @@ x...x.
 ......
 
 
-
+Capital D
 68 =
 
 xxxx..
@@ -512,7 +512,7 @@ xxxx..
 ......
 
 
-
+Capital E
 69 =
 
 xxxxx.
@@ -525,7 +525,7 @@ xxxxx.
 ......
 
 
-
+Capital F
 70 =
 
 xxxxx.
@@ -538,7 +538,7 @@ x.....
 ......
 
 
-
+Capital G
 71 =
 
 .xxx..
@@ -551,7 +551,7 @@ x...x.
 ......
 
 
-
+Capital H
 72 =
 
 x...x.
@@ -564,7 +564,7 @@ x...x.
 ......
 
 
-
+Capital I
 73 =
 
 .xxx..
@@ -577,7 +577,7 @@ x...x.
 ......
 
 
-
+Capital J
 74 =
 
 ....x.
@@ -590,7 +590,7 @@ x...x.
 ......
 
 
-
+Capital K
 75 =
 
 x...x.
@@ -603,7 +603,7 @@ x...x.
 ......
 
 
-
+Capital L
 76 =
 
 x.....
@@ -616,7 +616,7 @@ xxxxx.
 ......
 
 
-
+Capital M
 77 =
 
 x...x.
@@ -629,7 +629,7 @@ x...x.
 ......
 
 
-
+Capital N
 78 =
 
 x...x.
@@ -642,7 +642,7 @@ x...x.
 ......
 
 
-
+Capital O
 79 =
 
 .xxx..
@@ -655,7 +655,7 @@ x...x.
 ......
 
 
-
+Capital P
 80 =
 
 xxxx..
@@ -668,7 +668,7 @@ x.....
 ......
 
 
-
+Capital Q
 81 =
 
 .xxx..
@@ -681,7 +681,7 @@ x..x..
 ......
 
 
-
+Capital R
 82 =
 
 xxxx..
@@ -694,7 +694,7 @@ x...x.
 ......
 
 
-
+Capital S
 83 =
 
 .xxxx.
@@ -707,7 +707,7 @@ xxxx..
 ......
 
 
-
+Capital T
 84 =
 
 xxxxx.
@@ -720,7 +720,7 @@ xxxxx.
 ......
 
 
-
+Capital U
 85 =
 
 x...x.
@@ -733,7 +733,7 @@ x...x.
 ......
 
 
-
+Capital V
 86 =
 
 x...x.
@@ -746,7 +746,7 @@ x...x.
 ......
 
 
-
+Capital W
 87 =
 
 x...x.
@@ -759,7 +759,7 @@ x...x.
 ......
 
 
-
+Capital X
 88 =
 
 x...x.
@@ -772,7 +772,7 @@ x...x.
 ......
 
 
-
+Capital Y
 89 =
 
 x...x.
@@ -785,7 +785,7 @@ x...x.
 ......
 
 
-
+Capital Z
 90 =
 
 xxxxx.
@@ -798,7 +798,7 @@ xxxxx.
 ......
 
 
-
+Opening bracket
 91 =
 
 .xxx..
@@ -811,7 +811,7 @@ xxxxx.
 ......
 
 
-
+Backslash
 92 =
 
 ......
@@ -824,7 +824,7 @@ x.....
 ......
 
 
-
+Closing bracket
 93 =
 
 .xxx..
@@ -837,7 +837,7 @@ x.....
 ......
 
 
-
+Circumflex
 94 =
 
 ..x...
@@ -850,7 +850,7 @@ x...x.
 ......
 
 
-
+Underline
 95 =
 
 ......
@@ -863,7 +863,7 @@ xxxxxx
 ......
 
 
-
+Grave accent
 96 =
 
 ..xx..
@@ -876,7 +876,7 @@ xxxxxx
 ......
 
 
-
+Small a
 97 =
 
 ......
@@ -889,7 +889,7 @@ x...x.
 ......
 
 
-
+Small b
 98 =
 
 x.....
@@ -902,7 +902,7 @@ xxxx..
 ......
 
 
-
+Small c
 99 =
 
 ......
@@ -915,7 +915,7 @@ x.....
 ......
 
 
-
+Small d
 100 =
 
 ....x.
@@ -928,7 +928,7 @@ x...x.
 ......
 
 
-
+Small e
 101 =
 
 ......
@@ -941,7 +941,7 @@ x.....
 ......
 
 
-
+Small f
 102 =
 
 ...xx.
@@ -954,7 +954,7 @@ x.....
 ......
 
 
-
+Small g
 103 =
 
 ......
@@ -967,7 +967,7 @@ x...x.
 .xxx..
 
 
-
+Small h
 104 =
 
 x.....
@@ -980,7 +980,7 @@ x...x.
 ......
 
 
-
+Small i
 105 =
 
 ..x...
@@ -993,7 +993,7 @@ x...x.
 ......
 
 
-
+Small j
 106 =
 
 ....x.
@@ -1006,7 +1006,7 @@ x...x.
 ......
 
 
-
+Small k
 107 =
 
 x.....
@@ -1019,7 +1019,7 @@ x...x.
 ......
 
 
-
+Small l
 108 =
 
 ..x...
@@ -1032,7 +1032,7 @@ x...x.
 ......
 
 
-
+Small m
 109 =
 
 ......
@@ -1045,7 +1045,7 @@ x...x.
 ......
 
 
-
+Small n
 110 =
 
 ......
@@ -1058,7 +1058,7 @@ x...x.
 ......
 
 
-
+Small o
 111 =
 
 ......
@@ -1071,7 +1071,7 @@ x...x.
 ......
 
 
-
+Small p
 112 =
 
 ......
@@ -1084,7 +1084,7 @@ x.....
 ......
 
 
-
+Small q
 113 =
 
 ......
@@ -1097,7 +1097,7 @@ x...x.
 ......
 
 
-
+Small r
 114 =
 
 ......
@@ -1110,7 +1110,7 @@ x.....
 ......
 
 
-
+Small s
 115 =
 
 ......
@@ -1123,7 +1123,7 @@ x.....
 ......
 
 
-
+Small t
 116 =
 
 ..x...
@@ -1136,7 +1136,7 @@ x.....
 ......
 
 
-
+Small u
 117 =
 
 ......
@@ -1149,7 +1149,7 @@ x...x.
 ......
 
 
-
+Small v
 118 =
 
 ......
@@ -1162,7 +1162,7 @@ x...x.
 ......
 
 
-
+Small w
 119 =
 
 ......
@@ -1175,7 +1175,7 @@ x.x.x.
 ......
 
 
-
+Small x
 120 =
 
 ......
@@ -1188,7 +1188,7 @@ x...x.
 ......
 
 
-
+Small y
 121 =
 
 ......
@@ -1201,7 +1201,7 @@ x...x.
 .xxx..
 
 
-
+Small z
 122 =
 
 ......
@@ -1214,7 +1214,7 @@ xxxxx.
 ......
 
 
-
+Opening brace
 123 =
 
 ..xx..
@@ -1227,7 +1227,7 @@ x.....
 ......
 
 
-
+Pipe
 124 =
 
 ..x...
@@ -1240,7 +1240,7 @@ x.....
 ......
 
 
-
+Closing brace
 125 =
 
 .xx...
@@ -1253,7 +1253,7 @@ x.....
 ......
 
 
-
+Tilde
 126 =
 
 ......
@@ -1266,7 +1266,7 @@ x.x...
 ......
 
 
-
+DEL
 127 =
 
 ......
@@ -1279,7 +1279,7 @@ xxxxx.
 ......
 
 
-
+Euro
 128 =
 
 ..xxx.
@@ -1292,7 +1292,7 @@ xxxx..
 ......
 
 
-
+Small ü
 129 =
 
 x...x.
@@ -1305,7 +1305,7 @@ x...x.
 ......
 
 
-
+Rectangle
 130 =
 
 ......
@@ -1318,7 +1318,7 @@ x...x.
 ......
 
 
-
+Box
 131 =
 
 ......
@@ -1331,7 +1331,7 @@ x...x.
 ......
 
 
-
+Small ä
 132 =
 
 .x.x..
@@ -1344,7 +1344,7 @@ x...x.
 ......
 
 
-
+Double line left-right
 133 =
 
 ......
@@ -1357,7 +1357,7 @@ xxxxxx
 ......
 
 
-
+Small å
 134 =
 
 ..x...
@@ -1370,7 +1370,7 @@ x...x.
 ......
 
 
-
+Double line corner left-up
 135 =
 
 ..x.x.
@@ -1383,7 +1383,7 @@ xxxxx.
 ......
 
 
-
+Double line corner up-right
 136 =
 
 ..x.x.
@@ -1396,7 +1396,7 @@ xxxxx.
 ......
 
 
-
+Double line corner right-down
 137 =
 
 ......
@@ -1409,7 +1409,7 @@ xxxxx.
 ..x.x.
 
 
-
+Double line up-down
 138 =
 
 ..x.x.
@@ -1422,7 +1422,7 @@ xxxxx.
 ..x.x.
 
 
-
+Double line t-cross down
 139 =
 
 ......
@@ -1435,7 +1435,7 @@ xxx.xx
 ..x.x.
 
 
-
+Double line t-cross left
 140 =
 
 ..x.x.
@@ -1448,7 +1448,7 @@ xxx.x.
 ..x.x.
 
 
-
+Double line t-cross up
 141 =
 
 ..x.x.
@@ -1461,7 +1461,7 @@ xxxxxx
 ......
 
 
-
+Capital Ä
 142 =
 
 x...x.
@@ -1474,7 +1474,7 @@ x...x.
 ......
 
 
-
+Capital Å
 143 =
 
 .xxx..
@@ -1487,7 +1487,7 @@ x...x.
 ......
 
 
-
+Double line t-cross right
 144 =
 
 ..x.x.
@@ -1500,7 +1500,7 @@ x...x.
 ..x.x.
 
 
-
+Double line 4-cross
 145 =
 
 ..x.x.
@@ -1513,7 +1513,7 @@ xxx.xx
 ..x.x.
 
 
-
+Checker 1
 146 =
 
 xxx...
@@ -1526,7 +1526,7 @@ xxx...
 ...xxx
 
 
-
+Checker 2
 147 =
 
 ...xxx
@@ -1539,7 +1539,7 @@ xxx...
 xxx...
 
 
-
+Small ö
 148 =
 
 .x.x..
@@ -1552,7 +1552,7 @@ x...x.
 ......
 
 
-
+Checker small
 149 =
 
 xxx...
@@ -1565,7 +1565,7 @@ xxx...
 ...xxx
 
 
-
+Checker tiny
 150 =
 
 x.x.x.
@@ -1578,7 +1578,7 @@ x.x.x.
 .x.x.x
 
 
-
+Double line corner down-left
 151 =
 
 ......
@@ -1591,7 +1591,7 @@ xxx.x.
 ..x.x.
 
 
-
+Ball
 152 =
 
 ......
@@ -1604,7 +1604,7 @@ xxxxx.
 ......
 
 
-
+Capital Ö
 153 =
 
 x...x.
@@ -1617,7 +1617,7 @@ x...x.
 ......
 
 
-
+Capital Ü
 154 =
 
 x...x.
@@ -1630,7 +1630,7 @@ x...x.
 ......
 
 
-
+Bar 1
 155 =
 
 x.....
@@ -1643,7 +1643,7 @@ x.....
 x.....
 
 
-
+Bar 2
 156 =
 
 xx....
@@ -1656,7 +1656,7 @@ xx....
 xx....
 
 
-
+Bar 3
 157 =
 
 xxx...
@@ -1669,7 +1669,7 @@ xxx...
 xxx...
 
 
-
+Bar 4
 158 =
 
 xxxx..
@@ -1682,7 +1682,7 @@ xxxx..
 xxxx..
 
 
-
+Bar 5
 159 =
 
 xxxxx.
