@@ -34,11 +34,17 @@ try:
 
 	for line in fontdata:
 		if line.endswith("="):
-			index = int(line.strip("=")) * 8
+			try:
+				index = int(line.strip("=")) * 8
+			except:
+				index = 32 * 8
 		else:
 			value = 0
 			for bit in range(6):
-				value += 1 if line[0] == "x" else 0
+				try:
+					value += 1 if line[0] == "x" else 0
+				except:
+					pass
 				value <<= 1
 				line = line[1:]
 			value <<= 1
