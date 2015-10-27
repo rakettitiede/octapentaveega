@@ -39,16 +39,8 @@ try:
 			except:
 				index = 32 * 8
 		else:
-			value = 0
-			for bit in range(6):
-				try:
-					value += 1 if line[0] == "x" else 0
-				except:
-					pass
-				value <<= 1
-				line = line[1:]
-			value <<= 1
-			font[index] = value
+			value = reduce(lambda k, x: (k << 1) + x, [x != '.' for x in line], 0)
+			font[index] = value << 2
 			index += 1
 
 	for i in range(32, 160):
