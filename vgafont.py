@@ -37,8 +37,8 @@ try:
 			try:
 				index = int(line.strip("=")) * 8
 			except:
-				index = 32 * 8
-		else:
+				index = 0
+		elif len(line) == 6:
 			value = reduce(lambda k, x: (k << 1) + x, [x != '.' for x in line], 0)
 			font[index] = value << 2
 			index += 1
