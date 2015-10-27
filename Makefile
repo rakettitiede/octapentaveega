@@ -65,3 +65,6 @@ clean:
 vga-red.hex vga-blue.hex vga-green.hex: vga.asm font.inc tn85def.inc
 	$(COMPILE) -l vga.lst vga.asm
 	mv vga.hex vga-$(VGACOLOR).hex
+
+font.inc: vgafont.dat
+	python vgafont.py
