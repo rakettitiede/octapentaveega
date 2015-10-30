@@ -16,22 +16,17 @@ List of supported ANSI escapes:
 -----------------------------------------------------------------------------
 
 Effect | Code
--------------
+------ | ----
 Move cursor location | \<ESC\>[#row#;#column#H	#row# = 0 .. 13
                      | \<ESC\>[#row#;#column#f	#colunn# = 0 .. 31
-
 | Leaving both values undefined moves to (0,0):
 | \<ESC\>[H is equal to \<ESC\>[0;0H
-
 | *Moving cursor outside the specified area has undefined effect.*
-
 Clear screen and move cursor to upper left corner (0,0) |	\<ESC\>[2J
-
-
-Set colors (or reset to		\<ESC\>[#color#;#color#m
-default color). Selected
-color will stay active until
-reset or new color selected.
+Set colors (or reset to	| \<ESC\>[#color#;#color#m
+| default color). Selected
+| color will stay active until
+| reset or new color selected.
 
 #color# = color number		Foreground	Background
 	black			   30		   40
