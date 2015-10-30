@@ -16,8 +16,7 @@ List of supported ANSI escapes:
 -----------------------------------------------------------------------------
 
 Effect | Code
-
-
+-------------
 Move cursor location | \<ESC\>[#row#;#column#H	#row# = 0 .. 13
                      | \<ESC\>[#row#;#column#f	#colunn# = 0 .. 31
 
