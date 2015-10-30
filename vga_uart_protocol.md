@@ -15,14 +15,9 @@ followed by [ character is encountered.
 List of supported ANSI escapes:
 -----------------------------------------------------------------------------
 
-+-------+------+
-|Effect | Code |
-|=======+======+
-| Move cursor location | \<ESC\>[#row#;#column#H	#row# = 0 .. 13 |
-|                     | \<ESC\>[#row#;#column#f	#colunn# = 0 .. 31 |
-+-------+------+
-
-
+Effect | Code
+------ | ----
+Move cursor location | \<ESC\>[#row#;#column#H	#row# = 0 .. 13  \<ESC\>[#row#;#column#f	#colunn# = 0 .. 31
 | Leaving both values undefined moves to (0,0):
 | \<ESC\>[H is equal to \<ESC\>[0;0H
 | *Moving cursor outside the specified area has undefined effect.*
