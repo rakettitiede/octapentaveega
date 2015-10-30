@@ -18,14 +18,14 @@ Move cursor location		\<ESC\>[#row#;#column#H	#row# = 0 .. 13
 				\<ESC\>[#row#;#column#f	#colunn# = 0 .. 31
 
 Leaving both values undefined moves to (0,0):
-<ESC>[H is equal to <ESC>[0;0H
+\<ESC\>[H is equal to \<ESC\>[0;0H
 
-Moving cursor outside the specified area has undefined effect.
+*Moving cursor outside the specified area has undefined effect.*
 -----------------------------------------------------------------------------
-Clear screen and move cursor	<ESC>[2J
+Clear screen and move cursor	\<ESC\>[2J
 to upper left corner (0,0)
 -----------------------------------------------------------------------------
-Set colors (or reset to		<ESC>[#color#;#color#m
+Set colors (or reset to		\<ESC\>[#color#;#color#m
 default color). Selected
 color will stay active until
 reset or new color selected.
@@ -42,23 +42,23 @@ reset or new color selected.
 	reset to defaults	   0
 
 Color command supports maximum two arguments. Suggested way is to use
-value 0 only alone in a command: <ESC>[0m resets colors to default.
+value 0 only alone in a command: \<ESC\>[0m resets colors to default.
 
-Example: <ESC>[34;47m activates blue text with white background color.
+Example: \<ESC\>[34;47m activates blue text with white background color.
 
 Using other than supported color numbers has undefined effect.
 -----------------------------------------------------------------------------
-Disable wrap at the end		<ESC>[=7l	(lowercase L)
+Disable wrap at the end		\<ESC\>[=7l	(lowercase L)
 of line (cursor stays
 in the last column).
 -----------------------------------------------------------------------------
-Enable wrap at the end		<ESC>[=7h
+Enable wrap at the end		\<ESC\>[=7h
 of line (cursor advances
 to next line). Default
 mode.
 -----------------------------------------------------------------------------
 
-<ESC> followed by any other character than '[' stores the character as-is
+\<ESC\> followed by any other character than '[' stores the character as-is
 to screen buffer, allowing to display special characters on screen.
 
 
