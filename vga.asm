@@ -168,10 +168,11 @@ main:
 	;
 .ifdef VGA_MASTER
 
-	sbi DDRB, HSYNC_PIN
-	sbi DDRB, VSYNC_PIN
+	sbi DDRB, HSYNC_PIN		; Master drives both HSYNC
+	sbi DDRB, VSYNC_PIN		; and VSYNC
 .else
-	cbi DDRB, VSYNC_PIN
+	cbi DDRB, VSYNC_PIN		; Slave sync to VSYNC, set as input
+	sbi PORTB, VSYNC_PIN		; Enable pull-up
 .endif
 	sbi DDRB, RGB_PIN
 	cbi DDRB, UART_PIN

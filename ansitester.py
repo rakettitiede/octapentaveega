@@ -83,12 +83,12 @@ worms = [
 	{ "x" :  0, "y" :  7, "dir" : 3, "color" : 7},
 ]
 
-serwrite("x\x08") # dismiss if we're left in ANSI mode...
+serwrite("xx\x08") # dismiss if we're left in ANSI mode...
 serwrite("\x1B[2J") # Clear screen
 serwrite("\x1B[m") # Reset colors
 serwrite("\x1B[=7l") # Disable wrap
 
-delay = 0.5
+delay = 0.4
 
 for zz in range(200):
 	text = random.choice([
