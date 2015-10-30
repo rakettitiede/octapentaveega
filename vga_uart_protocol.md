@@ -19,7 +19,8 @@ Effect | Code | Params
 ------ | ---- | ------
 Move cursor location | \<ESC\>[#row#;#column#H <br /> \<ESC\>[#row#;#column#f #row# = 0 .. 13 | #row# = 0 .. 13 <br /> #colunn# = 0 .. 31 <br /> Leaving both values undefined moves to (0,0): \<ESC\>[H is equal to \<ESC\>[0;0H <br />**Moving cursor outside the specified area has undefined effect.**
 Clear screen and move cursor to upper left corner (0,0) |	\<ESC\>[2J | 
-Set colors (or reset to default color). Selected color will stay active until reset or new color selected.	| \<ESC\>[#color#;#color#m | #color# = ```
+Set colors (or reset to default color). Selected color will stay active until reset or new color selected.	| \<ESC\>[#color#;#color#m | #color# = 
+```
 color number		Foreground	Background
     black               30         40
     red                 31         41
