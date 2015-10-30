@@ -15,17 +15,11 @@ followed by [ character is encountered.
 List of supported ANSI escapes:
 -----------------------------------------------------------------------------
 
-Effect | Code
------- | ----
-Move cursor location | \<ESC\>[#row#;#column#H	#row# = 0 .. 13  \<ESC\>[#row#;#column#f	#colunn# = 0 .. 31
-| Leaving both values undefined moves to (0,0):
-| \<ESC\>[H is equal to \<ESC\>[0;0H
-| *Moving cursor outside the specified area has undefined effect.*
-Clear screen and move cursor to upper left corner (0,0) |	\<ESC\>[2J
-Set colors (or reset to	| \<ESC\>[#color#;#color#m
-| default color). Selected
-| color will stay active until
-| reset or new color selected.
+Effect | Code | Params
+------ | ---- | ------
+Move cursor location | \<ESC\>[#row#;#column#H <br /> \<ESC\>[#row#;#column#f #row# = 0 .. 13 | #row# = 0 .. 13 <br /> #colunn# = 0 .. 31 <br /> Leaving both values undefined moves to (0,0): \<ESC\>[H is equal to \<ESC\>[0;0H **Moving cursor outside the specified area has undefined effect.**
+Clear screen and move cursor to upper left corner (0,0) |	\<ESC\>[2J | 
+Set colors (or reset to default color). Selected color will stay active until reset or new color selected.	| \<ESC\>[#color#;#color#m | 
 
 #color# = color number		Foreground	Background
 	black			   30		   40
