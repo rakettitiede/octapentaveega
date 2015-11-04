@@ -27,7 +27,7 @@ import random
 
 # Change port name to correspond with your UART
 #
-ser = serial.Serial('/dev/cu.usbserial', 9600)
+ser = serial.Serial('COM18', 9600)
 
 serwrite = lambda x: ser.write(bytearray(map(ord, x)))
 move_to = lambda x, y: serwrite("\x1B[{0};{1}H".format(y, x))
@@ -35,7 +35,7 @@ set_color = lambda fg, bg = 0: serwrite("\x1B[3{0};4{1}m".format(fg, bg))
 
 def rndclear(c = 32, fg = 7, bg = 0):
 	serwrite("\x1B[3{0};4{1}m".format(fg,bg)) # Set colors
-	for loc in random.sample(xrange(448), 448):
+	for loc in random.sample(range(448), 448):
 		move_to(int(loc / 14), loc % 14)
 		serwrite(chr(c))
 	serwrite("\x1B[H") # Move cursor to 0,0
@@ -130,7 +130,7 @@ for zz in range(560):
 rndclear()
 
 # Draw some worms in the screen
-for z in xrange(300):
+for z in range(300):
 	for worm in worms:
 		move = directions[worm["dir"]]
 		worm["x"] = (worm["x"] + move["x"]) % 32
