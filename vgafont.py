@@ -62,6 +62,8 @@ try:
 	f.write( ";;                                                                             ;;\n")
 	f.write( ";;   Copyright 2015 Jari Tulilahti                                             ;;\n")
 	f.write( ";;                                                                             ;;\n")
+	f.write( ";;   All right and deserved                                                    ;;\n")
+	f.write( ";;                                                                             ;;\n")
 	f.write( ";;   Licensed under the Apache License, Version 2.0 (the \"License\");           ;;\n")
 	f.write( ";;   you may not use this file except in compliance with the License.          ;;\n")
 	f.write( ";;   You may obtain a copy of the License at                                   ;;\n")
