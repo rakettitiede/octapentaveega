@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 import sys
+import functools
 
 try:
 	f = open("vgafont.dat", "r")
@@ -39,7 +40,7 @@ try:
 			except:
 				index = 0
 		elif len(line) == 6:
-			value = reduce(lambda k, x: (k << 1) + x, [x != '.' for x in line], 0)
+			value = functools.reduce(lambda k, x: (k << 1) + x, [x != '.' for x in line], 0)
 			font[index] = value << 2
 			index += 1
 
@@ -101,5 +102,5 @@ try:
 	f.close()
 
 except:
-	print "Cannot create font. Exiting."
+	print("Cannot create font. Exiting.")
 	sys.exit(1)
