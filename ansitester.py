@@ -3,7 +3,9 @@
 ##   Very simple ANSI-tester Python application for Attiny85 VGA               ##
 ##                                                                             ##
 ##                                                                             ##
-##   Copyright 2015 Jari Tulilahti                                             ##
+##   (C) Copyright 2015 Jari Tulilahti                                         ##
+##                                                                             ## 
+##   All right and deserved.                                                   ## 
 ##                                                                             ##
 ##   Licensed under the Apache License, Version 2.0 (the "License")#           ##
 ##   you may not use this file except in compliance with the License.          ##
@@ -33,7 +35,7 @@ set_color = lambda fg, bg = 0: serwrite("\x1B[3{0};4{1}m".format(fg, bg))
 
 def rndclear(c = 32, fg = 7, bg = 0):
 	serwrite("\x1B[3{0};4{1}m".format(fg,bg)) # Set colors
-	for loc in random.sample(xrange(448), 448):
+	for loc in random.sample(range(448), 448):
 		move_to(int(loc / 14), loc % 14)
 		serwrite(chr(c))
 	serwrite("\x1B[H") # Move cursor to 0,0
@@ -83,6 +85,7 @@ worms = [
 	{ "x" :  0, "y" :  7, "dir" : 3, "color" : 7},
 ]
 
+<<<<<<< HEAD
 while True:
 
 	serwrite("xx\x08") # dismiss if we're left in ANSI mode...
@@ -149,6 +152,77 @@ while True:
 		a = chr(i)
 		x = random.randint(3, 16)
 		y = random.randint(3, 10)
+=======
+serwrite("xx\x08") # dismiss if we're left in ANSI mode...
+serwrite("\x1B[2J") # Clear screen
+serwrite("\x1B[m") # Reset colors
+serwrite("\x1B[=7l") # Disable wrap
+
+delay = 0.4
+
+for zz in range(200):
+	text = random.choice([
+		'512 bytes RAM\n',
+		'Rakettitiede Oy\n',
+		'This is Attiny85 VGA\n',
+		'8 bits rules!\n',
+		'Jartza made this\n',
+	])
+	space = 16 - (len(text) / 2)
+	spacing = "                "[0:random.randint(1, int(space * 2))]
+	serwrite(spacing)
+	serwrite(text)
+	if delay > 0:
+		time.sleep(delay)
+	if zz % 14 == 0:
+		delay -= 0.1
+
+rndclear(150, 5)
+rndclear()
+
+# Draw color bars
+x = 0
+d = 1
+c = 0
+for zz in range(560):
+	set_color(int(c), int(c - 0.5))
+	move_to(x, 13)
+	serwrite("\x96\x96\x96\x96\x96\x96\x96\x96\n")
+	x += d
+	c += .25
+	if int(c) == 8:
+		c = 1
+	if x in [0, 24]:
+		d = -d
+
+rndclear()
+
+# Draw some worms in the screen
+for z in range(300):
+	for worm in worms:
+		move = directions[worm["dir"]]
+		worm["x"] = (worm["x"] + move["x"]) % 32
+		worm["y"] = (worm["y"] + move["y"]) % 14
+		turn = random.choice([1, 2, 0, 0, 0])
+		move_to(worm["x"], worm["y"])
+		set_color(worm["color"])
+		serwrite(chr(move["dirs"][turn]["char"]))
+		worm["dir"] = move["dirs"][turn]["nextdir"]
+
+rndclear(160)
+rndclear(32)
+
+# Rakettitiede go-around
+for i in [150, 149, 146, 149, 150, 160]:
+	a = chr(i)
+	x = random.randint(3, 16)
+	y = random.randint(3, 10)
+	serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+	move_to(x,y)
+	serwrite("Rakettitiede")
+
+	for i in range(32):
+>>>>>>> 4207029fcb7c36a2a71b2a658e185264f405d8f4
 		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
 		move_to(x,y)
 		serwrite("Rakettitiede")

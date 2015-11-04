@@ -2,8 +2,9 @@
 ;;                                                                            ;;
 ;;  32 x 14 character VGA output with UART for Attiny85.                      ;;
 ;;                                                                            ;;
-;;  Copyright 2015 Jari Tulilahti                                             ;;
+;;  (C) Copyright 2015 Jari Tulilahti                                         ;;
 ;;                                                                            ;;
+;;  All right and deserved.                                                   ;;
 ;;                                                                            ;;
 ;;  Licensed under the Apache License, Version 2.0 (the "License");           ;;
 ;;  you may not use this file except in compliance with the License.          ;;
@@ -35,8 +36,8 @@
 ;
 
 .def zero		= r0		; Register for value 0
-.def one		= r1		; Register for value 1
-.def alt		= r2		; Buffer alternating value
+.def one 		= r1		; Register for value 1
+.def alt 		= r2		; Buffer alternating value
 .def alt_cnt		= r3		; Buffer alternating counter
 .def char_x		= r4		; Predraw-buffer x-offset
 .def uart_seq		= r5		; UART sequence
@@ -68,10 +69,10 @@
 .equ st_wrap		= 1		; Wrap mode active bit
 .equ st_uart		= 2		; UART data in buffer
 .equ st_scroll		= 3		; Scroll-clear in action
-.equ st_clear_val	= (1 << 0)	; Value to set/clear clear mode
-.equ st_wrap_val	= (1 << 1)	; Value to set/clear wrap mode
-.equ st_uart_val	= (1 << 2)	; Value to set/clear UART buffer state
-.equ st_scroll_val	= (1 << 3)	; Value to set/clear scroll-clear state
+.equ st_clear_val 	= (1 << 0)	; Value to set/clear clear mode
+.equ st_wrap_val 	= (1 << 1)	; Value to set/clear wrap mode
+.equ st_uart_val 	= (1 << 2)	; Value to set/clear UART buffer state
+.equ st_scroll_val 	= (1 << 3)	; Value to set/clear scroll-clear state
 
 ; ansi_state: (value)
 ;

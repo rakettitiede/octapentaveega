@@ -2,6 +2,8 @@
 #   Quick'n'Dirty Font Creator & Reorganizer for Attiny85 VGA.
 # 
 #   Copyright 2015 Jari Tulilahti
+#   
+#   All right and deserved.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -16,6 +18,7 @@
 #   limitations under the License.
 #
 import sys
+import functools
 
 try:
 	f = open("vgafont.dat", "r")
@@ -39,7 +42,7 @@ try:
 			except:
 				index = 0
 		elif len(line) == 6:
-			value = reduce(lambda k, x: (k << 1) + x, [x != '.' for x in line], 0)
+			value = functools.reduce(lambda k, x: (k << 1) + x, [x != '.' for x in line], 0)
 			font[index] = value << 2
 			index += 1
 
@@ -58,6 +61,8 @@ try:
 	f.write( ";;                                                                             ;;\n")
 	f.write( ";;                                                                             ;;\n")
 	f.write( ";;   Copyright 2015 Jari Tulilahti                                             ;;\n")
+	f.write( ";;                                                                             ;;\n")
+	f.write( ";;   All right and deserved                                                    ;;\n")
 	f.write( ";;                                                                             ;;\n")
 	f.write( ";;   Licensed under the Apache License, Version 2.0 (the \"License\");           ;;\n")
 	f.write( ";;   you may not use this file except in compliance with the License.          ;;\n")
@@ -101,5 +106,5 @@ try:
 	f.close()
 
 except:
-	print "Cannot create font. Exiting."
+	print("Cannot create font. Exiting.")
 	sys.exit(1)
