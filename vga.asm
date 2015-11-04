@@ -122,17 +122,12 @@ screenbuf:
 	.byte 448
 screen_end:
 
-; Start the code section. We don't have any
-; vectors, instead our main starts at 0x00.
-; Also stack is not used, so stack address
-; is undefined.
-;
-
+; Start the code section. 
+; Only two vectors used. RESET for all versions
+; and INT0 for slaves (synchronization)
 .cseg
 .org 0x00
 
-; Only two vectors used, RESET and INT0 for slaves
-;
 vectors:
 	rjmp main
 .ifdef VGA_SLAVE

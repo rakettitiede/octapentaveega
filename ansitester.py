@@ -25,7 +25,7 @@ import random
 
 # Change port name to correspond with your UART
 #
-ser = serial.Serial('/dev/cu.usbserial', 9600)
+ser = serial.Serial('/dev/cu.usbserial', 9600,  timeout = 1)
 
 serwrite = lambda x: ser.write(bytearray(map(ord, x)))
 move_to = lambda x, y: serwrite("\x1B[{0};{1}H".format(y, x))
@@ -83,129 +83,134 @@ worms = [
 	{ "x" :  0, "y" :  7, "dir" : 3, "color" : 7},
 ]
 
-serwrite("xx\x08") # dismiss if we're left in ANSI mode...
-serwrite("\x1B[2J") # Clear screen
-serwrite("\x1B[m") # Reset colors
-serwrite("\x1B[=7l") # Disable wrap
+while True:
 
-delay = 0.4
+	serwrite("xx\x08") # dismiss if we're left in ANSI mode...
+	serwrite("\x1B[2J") # Clear screen
+	serwrite("\x1B[m") # Reset colors
+	serwrite("\x1B[=7l") # Disable wrap
 
-for zz in range(200):
-	text = random.choice([
-		'512 bytes RAM\n',
-		'Rakettitiede Oy\n',
-		'This is Attiny85 VGA\n',
-		'8 bits rules!\n',
-		'Jartza made this\n',
-	])
-	space = 16 - (len(text) / 2)
-	spacing = "                "[0:random.randint(1, int(space * 2))]
-	serwrite(spacing)
-	serwrite(text)
-	if delay > 0:
-		time.sleep(delay)
-	if zz % 14 == 0:
-		delay -= 0.1
+	delay = 0.4
 
-rndclear(150, 5)
-rndclear()
+	for zz in range(200):
+		text = random.choice([
+			'512 bytes RAM\n',
+			'Rakettitiede Oy\n',
+			'This is Attiny85 VGA\n',
+			'8 bits rules!\n',
+			'Jartza made this\n',
+		])
+		space = 16 - (len(text) / 2)
+		spacing = "                "[0:random.randint(1, int(space * 2))]
+		serwrite(spacing)
+		serwrite(text)
+		if delay > 0:
+			time.sleep(delay)
+		if zz % 14 == 0:
+			delay -= 0.1
 
-# Draw color bars
-x = 0
-d = 1
-c = 0
-for zz in range(560):
-	set_color(int(c), int(c - 0.5))
-	move_to(x, 13)
-	serwrite("\x96\x96\x96\x96\x96\x96\x96\x96\n")
-	x += d
-	c += .25
-	if int(c) == 8:
-		c = 1
-	if x in [0, 24]:
-		d = -d
+	rndclear(150, 5)
+	rndclear()
 
-rndclear()
+	# Draw color bars
+	x = 0
+	d = 1
+	c = 0
+	for zz in range(560):
+		set_color(int(c), int(c - 0.5))
+		move_to(x, 13)
+		serwrite("\x96\x96\x96\x96\x96\x96\x96\x96\n")
+		x += d
+		c += .25
+		if int(c) == 8:
+			c = 1
+		if x in [0, 24]:
+			d = -d
 
-# Draw some worms in the screen
-for z in xrange(300):
-	for worm in worms:
-		move = directions[worm["dir"]]
-		worm["x"] = (worm["x"] + move["x"]) % 32
-		worm["y"] = (worm["y"] + move["y"]) % 14
-		turn = random.choice([1, 2, 0, 0, 0])
-		move_to(worm["x"], worm["y"])
-		set_color(worm["color"])
-		serwrite(chr(move["dirs"][turn]["char"]))
-		worm["dir"] = move["dirs"][turn]["nextdir"]
+	rndclear()
 
-rndclear(160)
-rndclear(32)
+	# Draw some worms in the screen
+	for z in xrange(300):
+		for worm in worms:
+			move = directions[worm["dir"]]
+			worm["x"] = (worm["x"] + move["x"]) % 32
+			worm["y"] = (worm["y"] + move["y"]) % 14
+			turn = random.choice([1, 2, 0, 0, 0])
+			move_to(worm["x"], worm["y"])
+			set_color(worm["color"])
+			serwrite(chr(move["dirs"][turn]["char"]))
+			worm["dir"] = move["dirs"][turn]["nextdir"]
 
-# Rakettitiede go-around
-for i in [150, 149, 146, 149, 150, 160]:
-	a = chr(i)
-	x = random.randint(3, 16)
-	y = random.randint(3, 10)
-	serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-	move_to(x,y)
-	serwrite("Rakettitiede")
+	rndclear(160)
+	rndclear(32)
 
-	for i in range(32):
+	# Rakettitiede go-around
+	for i in [150, 149, 146, 149, 150, 160]:
+		a = chr(i)
+		x = random.randint(3, 16)
+		y = random.randint(3, 10)
 		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-		move_to(i, 0)
-		serwrite(a)
+		move_to(x,y)
+		serwrite("Rakettitiede")
 
-	for i in range(0,14):
-		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-		move_to(31, i)
-		serwrite(a)
+		for i in range(32):
+			serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+			move_to(i, 0)
+			serwrite(a)
 
-	for i in range(31,-1,-1):
-		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-		move_to(i, 13)
-		serwrite(a)
+		for i in range(0,14):
+			serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+			move_to(31, i)
+			serwrite(a)
 
-	for i in range(13,-1,-1):
-		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-		move_to(0, i)
-		serwrite(a)
+		for i in range(31,-1,-1):
+			serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+			move_to(i, 13)
+			serwrite(a)
 
-	move_to(x,y)
-	serwrite("            ")
+		for i in range(13,-1,-1):
+			serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+			move_to(0, i)
+			serwrite(a)
 
-rndclear(160)
+		move_to(x,y)
+		serwrite("            ")
 
-# Random color characters
-for zz in range(20):
-	for i in range(65,91):
-		move_to(random.randint(0, 31), random.randint(0, 13))
-		(f, b) = random.sample(range(8), 2)
-		set_color(f, b)
-		serwrite(chr(i))
+	rndclear(160)
 
-rndclear()
-# Show color map
-serwrite("Attiny85 VGA, displaying 32x14\n")
-serwrite("characters on screen with 6x8 px\n")
-serwrite("font. Single attiny for B&W text\n")
-serwrite("or three attinys for 8 colors!\n")
-serwrite("      (C) 2015 // Jartza\n")
+	# Random color characters
+	for zz in range(20):
+		for i in range(65,91):
+			move_to(random.randint(0, 31), random.randint(0, 13))
+			(f, b) = random.sample(range(8), 2)
+			set_color(f, b)
+			serwrite(chr(i))
 
-move_to(0, 5)
-set_color(0, 7)
+	rndclear()
+	# Show color map
+	serwrite("Attiny85 VGA, displaying 32x14\n")
+	serwrite("characters on screen with 6x8 px\n")
+	serwrite("font. Single attiny for B&W text\n")
+	serwrite("or three attinys for 8 colors!\n")
+	serwrite("      (C) 2015 // Jartza\n")
 
-serwrite("  bg :   0  1  2  3  4  5  6  7 \n")
+	move_to(0, 5)
+	set_color(0, 7)
 
-for x in range(8):
-	move_to(2, x + 6)
-	set_color(7, 0)
-	serwrite("fg {0}".format(x))
-	move_to(8, x + 6)
-	for i in range(8):
-		set_color(x, i)	
-		serwrite("xY")
-		serwrite("\x1B[m ")	
+	serwrite("  bg :   0  1  2  3  4  5  6  7 \n")
+
+	for x in range(8):
+		move_to(2, x + 6)
+		set_color(7, 0)
+		serwrite("fg {0}".format(x))
+		move_to(8, x + 6)
+		for i in range(8):
+			set_color(x, i)	
+			serwrite("xY")
+			serwrite("\x1B[m ")	
+
+	time.sleep(15)
 
 ser.flush()
 ser.close()
+
