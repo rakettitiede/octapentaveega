@@ -2,8 +2,9 @@
 ;;                                                                            ;;
 ;;  32 x 14 character VGA output with UART for Attiny85.                      ;;
 ;;                                                                            ;;
-;;  Copyright 2015 Jari Tulilahti                                             ;;
+;;  (C) Copyright 2015 Jari Tulilahti                                         ;;
 ;;                                                                            ;;
+;;  All right and deserved.                                                   ;;
 ;;                                                                            ;;
 ;;  Licensed under the Apache License, Version 2.0 (the "License");           ;;
 ;;  you may not use this file except in compliance with the License.          ;;

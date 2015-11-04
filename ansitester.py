@@ -3,7 +3,9 @@
 ##   Very simple ANSI-tester Python application for Attiny85 VGA               ##
 ##                                                                             ##
 ##                                                                             ##
-##   Copyright 2015 Jari Tulilahti                                             ##
+##   (C) Copyright 2015 Jari Tulilahti                                         ##
+##                                                                             ## 
+##   All right and deserved.                                                   ## 
 ##                                                                             ##
 ##   Licensed under the Apache License, Version 2.0 (the "License")#           ##
 ##   you may not use this file except in compliance with the License.          ##
