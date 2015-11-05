@@ -181,40 +181,38 @@ for i in [150, 149, 146, 149, 150, 160]:
 		move_to(x,y)
 		serwrite("            ")
 
-	rndclear(160)
+rndclear(160)
 
-	# Random color characters
-	for zz in range(20):
-		for i in range(65,91):
-			move_to(random.randint(0, 31), random.randint(0, 13))
-			(f, b) = random.sample(range(8), 2)
-			set_color(f, b)
-			serwrite(chr(i))
+# Random color characters
+for zz in range(20):
+	for i in range(65,91):
+		move_to(random.randint(0, 31), random.randint(0, 13))
+		(f, b) = random.sample(range(8), 2)
+		set_color(f, b)
+		serwrite(chr(i))
 
-	rndclear()
-	# Show color map
-	serwrite("Attiny85 VGA, displaying 32x14\n")
-	serwrite("characters on screen with 6x8 px\n")
-	serwrite("font. Single attiny for B&W text\n")
-	serwrite("or three attinys for 8 colors!\n")
-	serwrite("      (C) 2015 // Jartza\n")
+rndclear()
+# Show color map
+serwrite("Attiny85 VGA, displaying 32x14\n")
+serwrite("characters on screen with 6x8 px\n")
+serwrite("font. Single attiny for B&W text\n")
+serwrite("or three attinys for 8 colors!\n")
+serwrite("      (C) 2015 // Jartza\n")
 
-	move_to(0, 5)
-	set_color(0, 7)
+move_to(0, 5)
+set_color(0, 7)
 
-	serwrite("  bg :   0  1  2  3  4  5  6  7 \n")
+serwrite("  bg :   0  1  2  3  4  5  6  7 \n")
 
-	for x in range(8):
-		move_to(2, x + 6)
-		set_color(7, 0)
-		serwrite("fg {0}".format(x))
-		move_to(8, x + 6)
-		for i in range(8):
-			set_color(x, i)	
-			serwrite("xY")
-			serwrite("\x1B[m ")	
-
-	time.sleep(15)
+for x in range(8):
+	move_to(2, x + 6)
+	set_color(7, 0)
+	serwrite("fg {0}".format(x))
+	move_to(8, x + 6)
+	for i in range(8):
+		set_color(x, i)	
+		serwrite("xY")
+		serwrite("\x1B[m ")	
 
 ser.flush()
 ser.close()
