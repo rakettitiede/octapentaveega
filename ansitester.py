@@ -158,28 +158,28 @@ for i in [150, 149, 146, 149, 150, 160]:
 		move_to(x,y)
 		serwrite("Rakettitiede")
 
-		for i in range(32):
-			serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-			move_to(i, 0)
-			serwrite(a)
+	for i in range(32):
+		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+		move_to(i, 0)
+		serwrite(a)
 
-		for i in range(0,14):
-			serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-			move_to(31, i)
-			serwrite(a)
+	for i in range(0,14):
+		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+		move_to(31, i)
+		serwrite(a)
 
-		for i in range(31,-1,-1):
-			serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-			move_to(i, 13)
-			serwrite(a)
+	for i in range(31,-1,-1):
+		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+		move_to(i, 13)
+		serwrite(a)
 
-		for i in range(13,-1,-1):
-			serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-			move_to(0, i)
-			serwrite(a)
+	for i in range(13,-1,-1):
+		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
+		move_to(0, i)
+		serwrite(a)
 
-		move_to(x,y)
-		serwrite("            ")
+	move_to(x,y)
+	serwrite("            ")
 
 rndclear(160)
 
