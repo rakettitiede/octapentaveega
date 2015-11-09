@@ -84,21 +84,25 @@
 
 ; Constants
 ;
-.equ UART_WAIT	= 130			; HSYNC timer value where we start to
+.equ UART_WAIT		= 130		; HSYNC timer value where we start to
 					; look for UART samples (or handle
 					; data received)
-.equ HSYNC_WAIT	= 157			; HSYNC value to start precalculating
+.equ HSYNC_WAIT		= 157		; HSYNC value to start precalculating
 					; the pixels and drawing to screen
-.equ JITTERVAL	= 8			; Must be in sync with HSYNC_WAIT value.
+.equ JITTERVAL		= 8		; Must be in sync with HSYNC_WAIT value.
 					; We want Timer0 counter to be 0-4 in
 					; jitterfix label. AVR Studio simulator
 					; was used to sync this value.
-.equ VSYNC_LOW	= 480 - 256		; Turn VSYNC low on this vertical line
-.equ VSYNC_HIGH	= VSYNC_LOW + 2		; Turn VSYNC high on this vertical line
-.equ VSYNC_FULL	= 525 - 512		; Full screen is this many lines
-.equ VISIBLE	= 452 - 256		; Visible vline count (+4 lines)
-.equ UART_XOR	= 124			; UART sequence magic XORing value
-.equ ALT_XOR	= 32			; Buffer flipping value
+.equ VSYNC_LOW		= 480 - 256	; Turn VSYNC low on this vertical line
+.equ VSYNC_HIGH		= VSYNC_LOW + 2	; Turn VSYNC high on this vertical line
+.equ VSYNC_FULL		= 525 - 512	; Full screen is this many lines
+.equ VISIBLE		= 452 - 256	; Visible vline count (+4 lines)
+.equ UART_XOR		= 124		; UART sequence magic XORing value
+.equ UART_INIT 		= 100		; UART sequence initial value after start
+.equ UART_FIRST 	= 24		; UART first sequence
+.equ ALT_XOR		= 32		; Buffer flipping value
+.equ DEFAULT_COLOR_FG 	= 7		; White foreground
+.equ DEFAULT_COLOR_BG 	= 0		; Black background
 
 ; Pins used for different signals
 ;
@@ -139,8 +143,19 @@ main:
 	; Set default values to registers
 	;
 	clr zero			; Zero the zero-register
-	clr one
-	inc one				; Register to hold value 1
+	clr uart_seq 			; Zero UART sequence
+	clr uart_next 			; Zero UART next
+	clr state			; Zero state
+	clr vline_lo			; Vertical line low
+	clr vline_hi 			; Vertical line high
+	clr alt 			; Alternate value
+	ldi temp, 4
+	mov alt_cnt, temp		; Alternating counter
+	clr char_x			; X offset
+	ldi font_hi, 0x18		; Font flash addr high byte
+
+	clr one				; Register to hold
+	inc one				; the value 1
 
 	; Enable wrap-mode by default
 	;
@@ -148,12 +163,12 @@ main:
 
 	; Set default colors
 	;
-	ldi temp, 7
+	ldi temp, DEFAULT_COLOR_FG
 	mov color_fg, temp		; Default foreground
-	ldi temp, 0	
+	ldi temp, DEFAULT_COLOR_BG
 	mov color_bg, temp		; Default background
 
-	; Make sure we clear the SRAM first
+	; Make sure we clear the screen right after start
 	;
 	sbr state, st_clear_val		; Initiate clear mode
 	clr clear_cnt			; Clear counter zeroed
@@ -285,16 +300,6 @@ set_timers:
 	ldi temp, JITTERVAL
 	out TCNT0, temp
 
-
-.ifdef VGA_MASTER
-	; We jump to the end of the VGA routine, setting
-	; sane values for the registers for first screen.
-	; screen_done jumps back to wait_uart. Only
-	; for master, as it messes the slave-sync.
-	;
-	rjmp screen_done
-.endif
-
 wait_uart:
 	; Wait for HSYNC timer to reach specified value
 	; for UART.
@@ -319,9 +324,9 @@ uart_handling:
 	;
 	ldi temp, 128
 	mov uart_byte, temp		; C flag set when byte received
-	ldi temp, 24			; First sequence after start
+	ldi temp, UART_FIRST		; First sequence after start
 	mov uart_seq, temp		; bit is 4 HSYNC cycles
-	ldi temp, 100			; Init next sequence value
+	ldi temp, UART_INIT		; Init next sequence value
 	mov uart_next, temp
 	rjmp wait_hsync			; Start bit handling done
 
@@ -680,9 +685,10 @@ ansi_color_next:
 	rjmp ansi_set_color_val		; Do it again
 
 ansi_color_reset:
-	ldi temp, 7
-	mov color_fg, temp		; Default foreground: white
-	clr color_bg			; Default background: black
+	ldi temp, DEFAULT_COLOR_FG
+	mov color_fg, temp		; Default foreground color
+	ldi temp, DEFAULT_COLOR_BG
+	mov color_bg, temp		; Default background color
 	rjmp ansi_color_next
 
 ansi_done:
