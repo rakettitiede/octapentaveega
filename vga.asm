@@ -610,8 +610,8 @@ no_move_overflow:
 ansi_enable_wrap:
 	; Enable wrap
 	;
-	ldi temp, 137			; Check value
-	cpse ansi_val1, temp		; =7h = enable wrap
+	ldi temp, 7			; Check value
+	cpse ansi_val1, temp		; 7h = enable wrap
 	rjmp ansi_done
 	sbr state, st_wrap_val
 	rjmp ansi_done
@@ -619,8 +619,8 @@ ansi_enable_wrap:
 ansi_disable_wrap:
 	; Disable wrap
 	;
-	ldi temp, 137			; Check value
-	cpse ansi_val1, temp		; =7l = disable wrap
+	ldi temp, 7			; Check value
+	cpse ansi_val1, temp		; 7l = disable wrap
 	rjmp ansi_done
 	cbr state, st_wrap_val
 	rjmp ansi_done
