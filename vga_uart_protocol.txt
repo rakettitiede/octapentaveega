@@ -48,11 +48,11 @@ Example: <ESC>[34;47m activates blue text with white background color.
 
 Using other than supported color numbers has undefined effect.
 -----------------------------------------------------------------------------
-Disable wrap at the end		<ESC>[7l	(lowercase L)
+Disable wrap at the end		<ESC>[?7l	(lowercase L)
 of line (cursor stays
 in the last column).
 -----------------------------------------------------------------------------
-Enable wrap at the end		<ESC>[7h
+Enable wrap at the end		<ESC>[?7h
 of line (cursor advances
 to next line). Default
 mode.
