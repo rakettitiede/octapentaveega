@@ -806,7 +806,7 @@ clear_screen:
 	ldi temp, 64
 	ldi temp2, 32
 
-	; First 64 bytes is cleared with zero
+	; First 64 bytes (hline buffer) is cleared with zero
 	; but the rest with space (32)
 	;
 	cp clear_cnt, zero 		; Is this first iteration (drawbuf area)
@@ -877,13 +877,13 @@ predraw:
 	add YL, alt			
 
 	.macro draw_char
-		ld temp, Y+
-		out USIDR, temp
-		sbi USICR, USICLK
-		sbi USICR, USICLK
-		sbi USICR, USICLK
-		sbi USICR, USICLK
-		sbi USICR, USICLK
+		ld temp, Y+		; Load byte from hline buffer, inc Y
+		out USIDR, temp		; Throw byte into USI data register
+		sbi USICR, USICLK	; Clock bit out to wire
+		sbi USICR, USICLK	; Clock bit out to wire
+		sbi USICR, USICLK	; Clock bit out to wire
+		sbi USICR, USICLK	; Clock bit out to wire
+		sbi USICR, USICLK	; Clock bit out to wire
 	.endmacro
 
 	draw_char
