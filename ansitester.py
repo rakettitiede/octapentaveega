@@ -88,7 +88,7 @@ worms = [
 serwrite("xx\x08") # dismiss if we're left in ANSI mode...
 serwrite("\x1B[2J") # Clear screen
 serwrite("\x1B[m") # Reset colors
-serwrite("\x1B[=7l") # Disable wrap
+serwrite("\x1B[7l") # Disable wrap
 
 delay = 0.4
 
