@@ -109,7 +109,7 @@ for zz in range(200):
 	if zz % 14 == 0:
 		delay -= 0.1
 
-rndclear(150, 5)
+rndclear(150, 7, 4)
 rndclear()
 
 # Draw color bars
@@ -155,11 +155,6 @@ for i in [150, 149, 146, 149, 150, 160]:
 
 	for i in range(32):
 		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-		move_to(x,y)
-		serwrite("Rakettitiede")
-
-	for i in range(32):
-		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
 		move_to(i, 0)
 		serwrite(a)
 
@@ -193,15 +188,16 @@ for zz in range(20):
 
 rndclear()
 # Show color map
-serwrite("Attiny85 VGA, displaying 32x14\n")
-serwrite("characters on screen with 6x8 px\n")
-serwrite("font. Single attiny for B&W text\n")
-serwrite("or three attinys for 8 colors!\n")
-serwrite("      (C) 2015 // Jartza\n")
+scrolltext = "Attiny85 VGA, displaying 32x14 characters on screen with 6x8 pixel font. Single Attiny85 for Black & White output, Three Attiny85s for 8 color output. Industry standard VGA 640x480 @ 60Hz.     "
+
+move_to(0, 2);
+serwrite("       (C) 2015 // Jartza\n")
+
+move_to(0, 4)
+serwrite("        Supported colors:\n")
 
 move_to(0, 5)
 set_color(0, 7)
-
 serwrite("  bg :   0  1  2  3  4  5  6  7 \n")
 
 for x in range(8):
@@ -214,6 +210,22 @@ for x in range(8):
 		serwrite("xY")
 		serwrite("\x1B[m ")	
 
+# Disable wrap and move cursor to 31, 0
+serwrite("\x1B[?7l")
+move_to(31, 0)
+set_color(7, 0)
+
+# Scroll text
+for i in range(3 * len(scrolltext)):
+	serwrite("\x1B[[" + scrolltext[i % len(scrolltext)])
+	time.sleep(0.1)
+
+for i in range(32):
+	serwrite("\x1B[[")
+	time.sleep(0.1)
+
+move_to(0,0)
+serwrite("         OctaPentaVeega\n")
+
 ser.flush()
 ser.close()
-
