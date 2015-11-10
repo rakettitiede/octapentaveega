@@ -57,6 +57,12 @@ of line (cursor advances
 to next line). Default
 mode.
 -----------------------------------------------------------------------------
+Scroll row left one 		<ESC>[#row#[	#row# = 0 .. 13
+column, emptying last
+character on row.
+
+Example: <ESC>[9[ scrolls row 9 (10th row) left one column.
+-----------------------------------------------------------------------------
 
 <ESC> followed by any other character than '[' stores the character as-is
 to screen buffer, allowing to display special characters on screen.
