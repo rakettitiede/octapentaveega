@@ -2,14 +2,15 @@ Font definition file for Attiny85 VGA.
 
 ASCII 32-159 characters defined in this file, ascii 0-31 and 160-255 are
 reserved for reverse characters and will be overriden with font creation
-script.
+script. This file is basically very free-form and you can add many comments,
+the only needed information about formatting is:
 
-To define font for character, place it's ascii value followed
-by equal sign on single line alone, followed by 8 lines containing
-6 character each: (6 x 8 pixel font):
+	To define font for character, place it's ascii value followed
+	by equal sign on single line alone, followed by 8 lines containing
+	6 character each: (6 x 8 pixel font):
 
-dot (.)		no pixel
-small x		pixel
+	dot (.)		no pixel
+	small x		pixel
 
 (C) Copyright 2015 Jari Tulilahti
 
