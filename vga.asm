@@ -69,10 +69,14 @@
 .equ st_wrap		= 1		; Wrap mode active bit
 .equ st_uart		= 2		; UART data in buffer
 .equ st_scroll		= 3		; Scroll-clear in action
+.equ st_left		= 4		; Scroll row left
+.equ st_row_first 	= 5		; Scroll row left, first half
 .equ st_clear_val 	= (1 << 0)	; Value to set/clear clear mode
 .equ st_wrap_val 	= (1 << 1)	; Value to set/clear wrap mode
 .equ st_uart_val 	= (1 << 2)	; Value to set/clear UART buffer state
 .equ st_scroll_val 	= (1 << 3)	; Value to set/clear scroll-clear state
+.equ st_left_val 	= (1 << 4)	; Value to set/clear row-scroll
+.equ st_row_first_val 	= (1 << 5)	; Value to set/clear first-half-scroll
 
 ; ansi_state: (value)
 ;
@@ -383,6 +387,9 @@ uart_gotdata:
 	sbrc state, st_scroll		; We've scrolled, clear one line?
 	rjmp scroll_later
 
+	sbrc state, st_left
+	rjmp row_left
+
 	sbrs state, st_uart		; Do we have something in buffer?
 	rjmp wait_hsync			; If we don't, go wait HSYNC
 
@@ -580,11 +587,18 @@ ansi_command:
 	breq ansi_enable_wrap
 	cpi uart_buf, 108		; l = disable wrap (lower case L)
 	breq ansi_disable_wrap
+	cpi uart_buf, 91		; [ = scroll row left
+	breq ansi_scroll_row_left
 
 	;
 	; Unknown, dismiss ANSI
 	clr ansi_state
 	rjmp wait_hsync
+
+ansi_scroll_row_left:
+	sbr state, st_left_val		; Set row scrolling to happen later
+	sbr state, st_row_first_val 	; and clear half a row at a time
+	rjmp ansi_done
 
 ansi_move_xy:
 	clr cursor_hi			; Calculate cursor location
@@ -694,6 +708,72 @@ ansi_color_reset:
 ansi_done:
 	clr ansi_state			; Done Parsing ANSI
 	rjmp wait_hsync			; Wait for HSYNC
+
+row_left:
+	; Scroll row left, one half at a time
+	;
+	ldi YL, low(screenbuf)		; Get screenbuffer address
+	ldi YH, high(screenbuf)
+	add YL, scroll_lo		; Add scroll offset low
+	adc YH, scroll_hi		; Add scroll offset high
+
+	sbrs state, st_row_first 	; First half of screen?
+	rjmp row_left_second 		; nope, second
+
+	.macro scr_left
+		ldd temp, Y+1
+		st Y+, temp
+	.endmacro
+
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+
+	cbr state, st_row_first_val
+	rjmp wait_hsync
+
+row_left_second:
+	; Second half of row-left-scroll
+	;
+	ldi temp, 16
+	add YL, temp
+	adc YH, zero
+
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+
+	ldi temp, 32
+	st Y, temp
+
+	cbr state, st_left_val
+	rjmp wait_hsync
+
 
 scroll_later:
 	; We're scrolling. Clear the "last line on screen"
