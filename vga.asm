@@ -717,6 +717,27 @@ row_left:
 	add YL, scroll_lo		; Add scroll offset low
 	adc YH, scroll_hi		; Add scroll offset high
 
+	clr temp2			; Calculate row address
+	mov temp, ansi_val1 		; Take row number from ansi val1
+	lsl temp 			; and multiply by 32
+	lsl temp			; with left shifting 5 times
+	lsl temp
+	lsl temp
+	lsl temp
+	rol temp2
+
+	add YL, temp 			; Add row address to screen
+	adc YH, temp2 			; buffer address
+
+	ldi temp, 2
+	cpi YL, low(screen_end) 	; check for screen buffer
+	cpc YH, temp			; address overflow
+	brlo row_left_start
+
+	subi YL, 192			; compensate overflow
+	sbc YH, one			; by subtracting 448
+
+row_left_start:
 	sbrs state, st_row_first 	; First half of screen?
 	rjmp row_left_second 		; nope, second
 
