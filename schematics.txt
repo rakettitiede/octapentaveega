@@ -20,7 +20,7 @@ Simplified three attiny, 8 color setup schematics:
 
                                                    +--|0.1uF|---GND       
                   (pullup)        /---__---\       |                      
-              VCC---[10k]-----PB5 |        | VCC---o--- +5V                
+              VCC---[10k]-----PB5 |        | VCC---+--- +5V                
                                   |   AT   |             
          20MHz CLOCK----------PB3 |   TI   | PB2---------------------+ 
                                   |   NY   |                         |     
