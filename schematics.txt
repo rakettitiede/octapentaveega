@@ -16,7 +16,7 @@ Simplified schematics for B/W VGA (Master only):
 
 
 
-Simplified three-color setup schematics:
+Simplified Three-Attinys 8-color setup schematics:
 
                                                    +--|0.1uF|---GND       
                   (pullup)        /---__---\       |                      
