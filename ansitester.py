@@ -130,7 +130,7 @@ for zz in range(560):
 rndclear()
 
 # Draw some worms in the screen
-for z in range(300):
+for z in range(200):
 	for worm in worms:
 		move = directions[worm["dir"]]
 		worm["x"] = (worm["x"] + move["x"]) % 32
@@ -188,7 +188,10 @@ for zz in range(20):
 
 rndclear()
 # Show color map
-scrolltext = "Attiny85 VGA, displaying 32x14 characters on screen with 6x8 pixel font. Single Attiny85 for Black & White output, Three Attiny85s for 8 color output. Industry standard VGA 640x480 @ 60Hz.     "
+scrolltext = "Attiny85 VGA, displaying 32x14 characters on screen " \
+	"with 6x8 pixel font. Single Attiny85 for Black & White output, " \
+	"Three Attiny85s for 8 color output. " \
+	"Industry standard VGA 640x480 @ 60Hz.     "
 
 move_to(0, 2);
 serwrite("       (C) 2015 // Jartza\n")
@@ -218,7 +221,7 @@ set_color(7, 0)
 # Scroll text
 for i in range(3 * len(scrolltext)):
 	serwrite("\x1B[[" + scrolltext[i % len(scrolltext)])
-	time.sleep(0.1)
+	time.sleep(0.08)
 
 for i in range(32):
 	serwrite("\x1B[[")
