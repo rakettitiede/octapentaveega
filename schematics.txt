@@ -42,8 +42,8 @@ Simplified three-color setup schematics:
             |                 GND |        | PB0 ------------------------o
             |                     `--------´                         |   |
             |                                                        |   |
-            |       (Switch closed while flashing slaves)            |   |
-            |             .-----|SWITCH|---GND                       |   |
+            |       (Jumper closed while flashing MCUs)              |   |
+            |             .--|JUMPER|--[1k]-- GND                    |   |
             |             |                        .--|0.1uF|-- GND  |   |
             |    (pullup) |       .---__---.       |                 |   |
             | VCC --[10k]-o-- PB5 |        | VCC --o-- +5V           |   |
