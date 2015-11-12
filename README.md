@@ -1,4 +1,4 @@
-# attiny85-vga
+# OctaPentaVeega
 
 Fun hobby project to generate 32 x 14 character VGA output from Attiny85.
 
