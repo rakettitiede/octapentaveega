@@ -14,6 +14,6 @@ Links:
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxX01pTTFlNDU0SFE/view" target="_blank">Another video</a>
 
 <p>
-<img src="https://raw.githubusercontent.com/Jartza/attiny85-vga/master/schematics.png" border="0">
+<img src="https://raw.githubusercontent.com/Jartza/octapentaveega/master/schematics.png" border="0">
 
 //Jartza
