@@ -5,7 +5,7 @@ Simplified schematics for B/W VGA (Master only):
                                            +--|0.1uF|----------GND
          (pullup)         /--\  /--\       |                                 
  VCC-------[10k]------PB5 |  \--/  | VCC---*-- +5V   +--[470]--RED
-                          |        |                 |
+                          |cBLK    |                 |
  20MHz CLOCK----------PB3 | ATTINY | PB2----VSYNC    *--[470]--GREEN
                           |        |                 |
  HSYNC----------------PB4 |   85   | PB1-------------*--[470]--BLUE
@@ -26,7 +26,7 @@ Simplified three attiny, 8 color setup schematics:
                                        +--|0.1uF|---GND       
       (pullup)        /--\  /--\       |                      
   VCC---[10k]-----PB5 |  \--/  | VCC---*--- +5V                
-                      |        |             
+                      |cBLK    |             
 20MHz CLOCK-------PB3 | ATTINY | PB2---------------------+ 
                       |        |                         |     
 +-----------------PB4 |   85   | PB1---[470]---BLUE      |   
@@ -39,7 +39,7 @@ Simplified three attiny, 8 color setup schematics:
 |                                      +--|0.1uF|---GND  |   |
 |     (pullup)        /--\  /--\       |                 |   |
 | VCC---[10k]-----PB5 |  \--/  | VCC---*--- +5V          |   |
-|                     |        |                         |   |
+|                     |cBLK    |                         |   |
 +-----------------PB3 | ATTINY | PB2---------------------*   |
                       |        |                         |   |
 +-----------------PB4 |   85   | PB1---[470]---GREEN     |   |
@@ -52,7 +52,7 @@ Simplified three attiny, 8 color setup schematics:
 |             |                        +--|0.1uF|---GND  |   |
 |    (pullup) |       /--\  /--\       |                 |   |
 | VCC---[10k]-*---PB5 |  \--/  | VCC---*--- +5V          |   |
-|                     |        |                         |   |
+|                     |cBLK    |                         |   |
 +---------------- PB3 | ATTINY | PB2---------------------*-------VSYNC
                       |        |                             |
          HSYNC----PB4 |   85   | PB1---[470]---RED           |
@@ -69,7 +69,7 @@ VGA-connector:
                  Female                                                                     
    /---------------------------------\                                                    
    |   5     4     3      2     1    |             1 = RED
-   |                                 |             2 = GREEN
+   |cBLU                             |             2 = GREEN
    |     10     9     8      7    6  |             3 = BLUE                                    
    \\                               //                                            
     | 15    14    13     12    11   |              5 = GND                           
@@ -79,7 +79,7 @@ VGA-connector:
                 Male                              10 = GND
    /---------------------------------\                                                    
    |     1     2     3      4     5  |            13 = HSYNC
-   |                                 |            14 = VSYNC
+   |cBLU                             |            14 = VSYNC
    |  6    7     8      9     10     |                                                         
    \\                               //                                            
     |   11    12    13     14    15 |                                              
