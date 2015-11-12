@@ -24,10 +24,12 @@
 import serial
 import time
 import random
+import sys
 
-# Change port name to correspond with your UART
+# Give port name of your UART as first argument. No error checking
+# here, sorry.
 #
-ser = serial.Serial('/dev/cu.usbserial', 9600,  timeout = 1)
+ser = serial.Serial(sys.argv[1], 9600,  timeout = 1)
 
 serwrite = lambda x: ser.write(bytearray(map(ord, x)))
 move_to = lambda x, y: serwrite("\x1B[{0};{1}H".format(y, x))
