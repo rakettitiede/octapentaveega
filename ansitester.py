@@ -220,17 +220,23 @@ serwrite("\x1B[?7l")
 move_to(31, 0)
 set_color(7, 0)
 
+ser.flush()
+
 # Scroll text
 for i in range(3 * len(scrolltext)):
 	serwrite("\x1B[[" + scrolltext[i % len(scrolltext)])
+	ser.flush()
 	time.sleep(0.08)
 
 for i in range(32):
 	serwrite("\x1B[[")
+	ser.flush()
 	time.sleep(0.1)
 
 move_to(0,0)
 serwrite("         OctaPentaVeega\n")
+
+time.sleep(3)
 
 ser.flush()
 ser.close()
