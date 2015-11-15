@@ -1,4 +1,4 @@
-Front and back porches, generic concept:
+Front and back porches, general concept:
 
 
       sync pulse             sync pulse
