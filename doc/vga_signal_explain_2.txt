@@ -1,0 +1,17 @@
+Front and back porches, generic concept:
+
+
+      sync pulse             sync pulse
+           |                      |
+           |     |  active  |     |                                     
+           |     +----------+     |                                     
+           |     |   area   |     |                                     
+   ------+ | +------------------+ | +--------       
+...      | | |   :          :   | | |        ...    
+         +---+   :          :   +---+                  
+                 :          :                          
+             :   :          :   :                      
+             +===+          +===+                     
+             back           front                      
+             porch          porch                      
+
