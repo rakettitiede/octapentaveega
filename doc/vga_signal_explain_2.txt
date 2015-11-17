@@ -1,16 +1,18 @@
 Front and back porches, general concept:
 
 
-      sync pulse             sync pulse
-           |                      |
-           |     |  active  |     |             
-           |     +----------+     |             
-           |     |   area   |     |             
-   ------+ | +------------------+ | +--------   
-...  :   | | |   :          :   | | |   :    ...
-     :   +---+   :          :   +---+   :       
-     :           :          :           :       
-     :   :   :   :          :   :   :   :       
-     +===+   +===+          +===+   +===+       
-     front   back           front   back        
-     porch   porch          porch   porch       
+        sync pulse                     sync pulse
+             |                              |
+             |       |    active    |       |             
+             |       |<------------>|       |             
+             |       |     area     |       |             
+   --------+ | +--------------------------+ | +--------   
+...  :     | | |     :              :     | | |     :  ...
+     :front+---+back :              :front+---+back :     
+     :porch     porch:              :porch     porch:     
+     :     :   :     :              :     :   :     :     
+     +=====+   +=====+              +=====+   +=====+     
+     +===============+              +===============+     
+     :   blanking    :              :   blanking    :     
+     :     area      :              :     area      :     
+     +===============+              +===============+
