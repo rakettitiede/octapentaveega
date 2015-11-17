@@ -61,14 +61,3 @@ VSYNC                                               front  |  back
     |                                .                                         
                                      .                                         
                                      .                                         
-                                                                               
-                                                                               
-                                                                               
-                                                                               
-                                                                               
-                                                                               
-                                                                               
-                                                                               
-                                                                               
-                                                                               
-                                                                               
