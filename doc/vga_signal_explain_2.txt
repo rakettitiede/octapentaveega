@@ -7,11 +7,11 @@ Front and back porches, general concept:
            |     +----------+     |                                     
            |     |   area   |     |                                     
    ------+ | +------------------+ | +--------       
-...      | | |   :          :   | | |        ...    
-         +---+   :          :   +---+                  
-                 :          :                          
-             :   :          :   :                      
-             +===+          +===+                     
-             back           front                      
-             porch          porch                      
+...  :   | | |   :          :   | | |   :    ...    
+     :   +---+   :          :   +---+   :              
+     :           :          :           :              
+     :   :   :   :          :   :   :   :              
+     +===+   +===+          +===+   +===+             
+     front   back           front   back               
+     porch   porch          porch   porch              
 
