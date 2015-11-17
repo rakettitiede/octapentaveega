@@ -1,3 +1,5 @@
+Putting it all together:
+
                                                      hsync pulse
                                                            |
 VSYNC                                               front  |  back          
