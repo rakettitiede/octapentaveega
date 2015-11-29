@@ -1178,8 +1178,8 @@ scroll_screen_left:
 	out LEFT_CNT, temp
 
 	ldi temp, 5
-	add vline_lo, temp		; Scroll takes multiple
-	adc vline_hi, zero		; horizontal lines, keep count
+	add vline_lo, temp		; Scroll takes 5 horizontal
+	adc vline_hi, zero		; line time, keep up count
 
 	ldi ZH, 1			; 447 High
 	ldi ZL, 191			; 447 Low
