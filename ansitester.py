@@ -79,12 +79,12 @@ directions = [
 
 worms = [
 	{ "x" : 16, "y" :  0, "dir" : 2, "color" : 1},
-	{ "x" : 16, "y" : 13, "dir" : 0, "color" : 2},
+#	{ "x" : 16, "y" : 13, "dir" : 0, "color" : 2},
 	{ "x" : 12, "y" : 10, "dir" : 2, "color" : 3},
 	{ "x" : 16, "y" :  7, "dir" : 1, "color" : 4},
-	{ "x" : 31, "y" :  7, "dir" : 1, "color" : 5},
+#	{ "x" : 31, "y" :  7, "dir" : 1, "color" : 5},
 	{ "x" : 22, "y" :  4, "dir" : 3, "color" : 6},
-	{ "x" :  0, "y" :  7, "dir" : 3, "color" : 7},
+#	{ "x" :  0, "y" :  7, "dir" : 3, "color" : 7},
 ]
 
 serwrite("xx\x08") # dismiss if we're left in ANSI mode...

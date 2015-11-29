@@ -115,6 +115,10 @@
 .equ VSYNC_PIN	= PB2
 .equ HSYNC_PIN	= PB4
 
+; General purpose IO registers used as storage
+;
+.equ LEFT_CNT	= GPIOR0
+
 ; All of the 512 byte SRAM is used for buffers.
 ; drawbuf is actually used in two parts, 32
 ; bytes for currently drawn horizontal line and
@@ -660,10 +664,22 @@ ansi_commence_clear:
 	rjmp wait_hsync
 
 unknown_ansi:
-	; Unknown command after ESC. Just print it to buffer.
+	; Unknown ANSI escape after ESC. If it's not left scroll
+	; just print it into buffer
 	;
 	clr ansi_state
-	rjmp not_special
+
+	ldi temp, 68			; Ascii 91 = D
+	cpse uart_buf, temp		; Was it left scroll?
+	rjmp not_special		; No it was not..
+
+	in temp, LEFT_CNT		; Increase the
+	ldi temp2, 32 			; screen left scroll
+	cpse temp, temp2		; counter up to 32
+	inc temp			; but not over it
+	out LEFT_CNT, temp
+
+	rjmp wait_hsync
 
 ansi_set_color:
 	; Set colors. We do same check for both values.
@@ -1078,8 +1094,8 @@ vertical_sync:
 	;
 .ifdef VGA_MASTER
 	ldi temp, VSYNC_LOW
-	cp vline_lo, temp		; Low (478)
-	cpc vline_hi, one		; High (478)
+	cp vline_lo, temp		; Low
+	cpc vline_hi, one		; High
 	brne check_vsync_high
 	cbi PORTB, VSYNC_PIN		; Vsync low
 	rjmp wait_uart
@@ -1088,8 +1104,8 @@ check_vsync_high:
 	; Check if we need to switch VSYNC high
 	;
 	ldi temp, VSYNC_HIGH
-	cp vline_lo, temp		; Low (480)
-	cpc vline_hi, one		; High (480)
+	cp vline_lo, temp		; Low
+	cpc vline_hi, one		; High
 	brne check_vlines
 	sbi PORTB, VSYNC_PIN		; Vsync high
 	rjmp wait_uart
@@ -1105,12 +1121,23 @@ check_vlines:
 	breq screen_done
 
 vblank:
-	; We are outside visible screen with "nothing to do",
-	; except when we are clearing the screen
+	; We are outside visible screen
 	;
 	sbrc state, st_clear		; If bit it clear, we skip
 	rjmp clear_screen 		; the jump to screen clearing
-	rjmp wait_uart
+
+	ldi temp, VSYNC_HIGH + 1	; VSYNC back portch has begun?
+	cp vline_lo, temp		; Low
+	cpc vline_hi, one		; High
+	brge check_vblank_scroll
+
+	rjmp wait_uart			; Not yet back porch
+
+check_vblank_scroll:
+	in temp, LEFT_CNT		; Do we need to scroll screen left?
+	cpse zero, temp			; Skip next command if we don't
+	rjmp scroll_screen_left		; Yes we do, jump to scroll
+	rjmp wait_uart			; No we don't need to
 
 screen_done:
 	; We have drawn full screen, initialize values
@@ -1143,4 +1170,53 @@ drawbuf_clear_loop:
 	st Y+, zero
 	dec temp
 	brne drawbuf_clear_loop
+	rjmp wait_uart
+
+scroll_screen_left:
+	in temp, LEFT_CNT
+	dec temp
+	out LEFT_CNT, temp
+
+	ldi temp, 5
+	add vline_lo, temp		; Scroll takes multiple
+	adc vline_hi, zero		; horizontal lines, keep count
+
+	ldi ZH, 1			; 447 High
+	ldi ZL, 191			; 447 Low
+
+	ldi YL, low(screenbuf)
+	ldi YH, high(screenbuf)
+
+;	.macro scr_left
+;		ldd temp, Y+1
+;		st Y+, temp
+;	.endmacro
+
+	left_scroll_loop:
+		scr_left
+		sbiw ZH:ZL, 1
+		brne left_scroll_loop
+
+	ldi temp, 32
+
+	.macro emptylast
+		st Y, temp
+		sbiw YH:YL, 32
+	.endmacro
+
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+	emptylast
+
 	rjmp wait_uart
