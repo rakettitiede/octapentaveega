@@ -810,10 +810,13 @@ row_left_second:
 	ldi temp, 32
 	st Y, temp
 
-	; Increase row count, just in case we're full-screen scrolling
+	; Increase row count in case we're full-screen scrolling
 	;
+	sbrc state, st_left
 	inc scroll_row
 
+	; Implicate that row is done
+	;
 	cbr state, st_left_val
 	rjmp wait_hsync
 
