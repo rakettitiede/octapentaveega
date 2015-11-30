@@ -70,13 +70,15 @@
 .equ st_uart		= 2		; UART data in buffer
 .equ st_scroll		= 3		; Scroll-clear in action
 .equ st_left		= 4		; Scroll row left
-.equ st_row_first 	= 5		; Scroll row left, first half
+.equ st_row_first 	= 5		; Scroll row left, first half of a row
+.equ st_full_left 	= 6		; Scroll full screen
 .equ st_clear_val 	= (1 << 0)	; Value to set/clear clear mode
 .equ st_wrap_val 	= (1 << 1)	; Value to set/clear wrap mode
 .equ st_uart_val 	= (1 << 2)	; Value to set/clear UART buffer state
 .equ st_scroll_val 	= (1 << 3)	; Value to set/clear scroll-clear state
 .equ st_left_val 	= (1 << 4)	; Value to set/clear row-scroll
-.equ st_row_first_val 	= (1 << 5)	; Value to set/clear first-half-scroll
+.equ st_row_first_val 	= (1 << 5)	; Value to set/clear half-row-scroll
+.equ st_full_left_val 	= (1 << 6)	; Value to set/clear full-screen-scroll
 
 ; ansi_state: (value)
 ;
@@ -1176,18 +1178,30 @@ scroll_screen_left:
 	sbrc state, st_left		; If row scrolling is ongoing
 	rjmp wait_uart			; do nothing
 
+	sbrc state, st_full_left	; If screen scrolling is ongoing
+	rjmp scroll_wait_row		; wait for "row 14"
+
+	sbr state, st_left_val		; Set row scrolling to happen later
+	sbr state, st_row_first_val 	; row-by-row
+	sbr state, st_full_left_val
+	clr scroll_row			; Start from row 0
+
+	rjmp wait_uart
+
+scroll_wait_row:
 	ldi temp, 14
-	cp scroll_row, temp		; Check if current line of scrolling
-	brne scroll_dont_count		; is in the middle of screen?
+	cp scroll_row, temp		; See if we've done full 
+	breq scroll_dec_count		; screen
 
-	clr scroll_row			; Start from row zero
+	sbr state, st_left_val		; Set row scrolling to happen later
+	sbr state, st_row_first_val 	; row-by-row
 
+	rjmp wait_uart			; just jump to wait for uart
+
+scroll_dec_count:
 	in temp, LEFT_CNT		; We've done full screen,
 	dec temp			; decrease the counter of 
 	out LEFT_CNT, temp		; screenfuls to scroll
 
-scroll_dont_count:
-	sbr state, st_left_val		; Set row scrolling to happen later
-	sbr state, st_row_first_val 	; row-by-row
-
+	cbr state, st_full_left_val	; Check scroll on next round again
 	rjmp wait_uart
