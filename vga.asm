@@ -50,7 +50,7 @@
 .def ansi_val2		= r12		; Storage for ANSI cmd value
 .def vline_lo		= r13		; Vertical line low byte
 .def vline_hi		= r14		; Vertical line high byte
-; r15 unused
+.def scroll_row		= r15		; Row number for horizontal scroll
 .def temp		= r16		; Temporary register
 .def temp2		= r17		; Temporary register 2
 .def font_hi		= r18		; Font Flash addr high byte
@@ -110,14 +110,15 @@
 
 ; Pins used for different signals
 ;
-.equ UART_PIN	= PB0	
-.equ RGB_PIN	= PB1
-.equ VSYNC_PIN	= PB2
-.equ HSYNC_PIN	= PB4
+.equ UART_PIN		= PB0
+.equ RGB_PIN		= PB1
+.equ VSYNC_PIN		= PB2
+.equ HSYNC_PIN		= PB4
 
 ; General purpose IO registers used as storage
 ;
-.equ LEFT_CNT	= GPIOR0
+.equ LEFT_CNT		= GPIOR0
+.equ LEFT_ROW_CNT 	= GPIOR1
 
 ; All of the 512 byte SRAM is used for buffers.
 ; drawbuf is actually used in two parts, 32
@@ -164,6 +165,10 @@ main:
 
 	clr one				; Register to hold
 	inc one				; the value 1
+
+	; Empty GPIO registers
+	out LEFT_ROW_CNT, zero
+	out LEFT_CNT, zero
 
 	; Enable wrap-mode by default
 	;
@@ -602,6 +607,7 @@ ansi_command:
 ansi_scroll_row_left:
 	sbr state, st_left_val		; Set row scrolling to happen later
 	sbr state, st_row_first_val 	; and clear half a row at a time
+	mov scroll_row, ansi_val1	; Store row number for later
 	rjmp ansi_done
 
 ansi_move_xy:
@@ -665,9 +671,10 @@ ansi_commence_clear:
 
 unknown_ansi:
 	; Unknown ANSI escape after ESC. If it's not left scroll
-	; just print it into buffer
+	; just print it into buffer. It might also be the scroll
+	; command which we check here
 	;
-	clr ansi_state
+	clr ansi_state 
 
 	ldi temp, 68			; Ascii 91 = D
 	cpse uart_buf, temp		; Was it left scroll?
@@ -678,7 +685,7 @@ unknown_ansi:
 	cpse temp, temp2		; counter up to 32
 	inc temp			; but not over it
 	out LEFT_CNT, temp
-
+ 
 	rjmp wait_hsync
 
 ansi_set_color:
@@ -734,7 +741,7 @@ row_left:
 	adc YH, scroll_hi		; Add scroll offset high
 
 	clr temp2			; Calculate row address
-	mov temp, ansi_val1 		; Take row number from ansi val1
+	mov temp, scroll_row 		; Take row number from store
 	lsl temp 			; and multiply by 32
 	lsl temp			; with left shifting 5 times
 	lsl temp
@@ -807,6 +814,10 @@ row_left_second:
 
 	ldi temp, 32
 	st Y, temp
+
+	in temp, LEFT_ROW_CNT 		; If doing full-screen
+	inc temp 			; scrolling, make sure
+	out LEFT_ROW_CNT, temp		; row number is increased
 
 	cbr state, st_left_val
 	rjmp wait_hsync
@@ -1167,56 +1178,30 @@ clear_drawbuf:
 	ldi temp, 32			; Clear 32 bytes
 
 drawbuf_clear_loop:
+	; Clear drawbuffer-loop
+	;
 	st Y+, zero
 	dec temp
 	brne drawbuf_clear_loop
 	rjmp wait_uart
 
 scroll_screen_left:
-	in temp, LEFT_CNT
-	dec temp
-	out LEFT_CNT, temp
+	sbrc state, st_left		; If row scrolling is ongoing
+	rjmp wait_uart			; do nothing
 
-	ldi temp, 5
-	add vline_lo, temp		; Scroll takes 5 horizontal
-	adc vline_hi, zero		; line time, keep up count
+	in temp, LEFT_ROW_CNT		; Check if current line of scrolling
+	cpi temp, 14			; is in the middle of screen, then
+	brne scroll_dont_count		; don't decrease counter
 
-	ldi ZH, 1			; 447 High
-	ldi ZL, 191			; 447 Low
+	out LEFT_ROW_CNT, zero		; Zero row counter
 
-	ldi YL, low(screenbuf)
-	ldi YH, high(screenbuf)
+	in temp, LEFT_CNT		; We've done full screen,
+	dec temp			; decrease the counter of 
+	out LEFT_CNT, temp		; screenfuls to scroll
 
-;	.macro scr_left
-;		ldd temp, Y+1
-;		st Y+, temp
-;	.endmacro
-
-	left_scroll_loop:
-		scr_left
-		sbiw ZH:ZL, 1
-		brne left_scroll_loop
-
-	ldi temp, 32
-
-	.macro emptylast
-		st Y, temp
-		sbiw YH:YL, 32
-	.endmacro
-
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
-	emptylast
+scroll_dont_count:
+	sbr state, st_left_val		; Set row scrolling to happen later
+	sbr state, st_row_first_val 	; and store the row number
+	in scroll_row, LEFT_ROW_CNT
 
 	rjmp wait_uart
