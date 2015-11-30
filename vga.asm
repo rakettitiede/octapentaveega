@@ -118,7 +118,6 @@
 ; General purpose IO registers used as storage
 ;
 .equ LEFT_CNT		= GPIOR0
-.equ LEFT_ROW_CNT 	= GPIOR1
 
 ; All of the 512 byte SRAM is used for buffers.
 ; drawbuf is actually used in two parts, 32
@@ -167,7 +166,6 @@ main:
 	inc one				; the value 1
 
 	; Empty GPIO registers
-	out LEFT_ROW_CNT, zero
 	out LEFT_CNT, zero
 
 	; Enable wrap-mode by default
@@ -742,11 +740,8 @@ row_left:
 
 	clr temp2			; Calculate row address
 	mov temp, scroll_row 		; Take row number from store
-	lsl temp 			; and multiply by 32
+	swap temp 			; and multiply by 32
 	lsl temp			; with left shifting 5 times
-	lsl temp
-	lsl temp
-	lsl temp
 	rol temp2
 
 	add YL, temp 			; Add row address to screen
@@ -815,9 +810,9 @@ row_left_second:
 	ldi temp, 32
 	st Y, temp
 
-	in temp, LEFT_ROW_CNT 		; If doing full-screen
-	inc temp 			; scrolling, make sure
-	out LEFT_ROW_CNT, temp		; row number is increased
+	; Increase row count, just in case we're full-screen scrolling
+	;
+	inc scroll_row
 
 	cbr state, st_left_val
 	rjmp wait_hsync
@@ -1137,14 +1132,6 @@ vblank:
 	sbrc state, st_clear		; If bit it clear, we skip
 	rjmp clear_screen 		; the jump to screen clearing
 
-	ldi temp, VSYNC_HIGH + 1	; VSYNC back portch has begun?
-	cp vline_lo, temp		; Low
-	cpc vline_hi, one		; High
-	brge check_vblank_scroll
-
-	rjmp wait_uart			; Not yet back porch
-
-check_vblank_scroll:
 	in temp, LEFT_CNT		; Do we need to scroll screen left?
 	cpse zero, temp			; Skip next command if we don't
 	rjmp scroll_screen_left		; Yes we do, jump to scroll
@@ -1189,11 +1176,11 @@ scroll_screen_left:
 	sbrc state, st_left		; If row scrolling is ongoing
 	rjmp wait_uart			; do nothing
 
-	in temp, LEFT_ROW_CNT		; Check if current line of scrolling
-	cpi temp, 14			; is in the middle of screen, then
-	brne scroll_dont_count		; don't decrease counter
+	ldi temp, 14
+	cp scroll_row, temp		; Check if current line of scrolling
+	brne scroll_dont_count		; is in the middle of screen?
 
-	out LEFT_ROW_CNT, zero		; Zero row counter
+	clr scroll_row			; Start from row zero
 
 	in temp, LEFT_CNT		; We've done full screen,
 	dec temp			; decrease the counter of 
@@ -1201,7 +1188,6 @@ scroll_screen_left:
 
 scroll_dont_count:
 	sbr state, st_left_val		; Set row scrolling to happen later
-	sbr state, st_row_first_val 	; and store the row number
-	in scroll_row, LEFT_ROW_CNT
+	sbr state, st_row_first_val 	; row-by-row
 
 	rjmp wait_uart
