@@ -393,11 +393,11 @@ handle_data:
 uart_gotdata:
 	; Check if we have data and handle it
 	;
-	sbrc state, st_scroll		; We've scrolled, clear one line?
-	rjmp scroll_later
-
 	sbrc state, st_left
 	rjmp row_left
+
+	sbrc state, st_scroll		; We've scrolled, clear one line?
+	rjmp scroll_later
 
 	sbrs state, st_uart		; Do we have something in buffer?
 	rjmp wait_hsync			; If we don't, go wait HSYNC
@@ -680,10 +680,8 @@ unknown_ansi:
 	cpse uart_buf, temp		; Was it left scroll?
 	rjmp not_special		; No it was not..
 
-	in temp, LEFT_CNT		; Increase the
-	ldi temp2, 32 			; screen left scroll
-	cpse temp, temp2		; counter up to 32
-	inc temp			; but not over it
+	in temp, LEFT_CNT		; Increase the screen
+	inc temp			; left scroll counter
 	out LEFT_CNT, temp
  
 	rjmp wait_hsync
