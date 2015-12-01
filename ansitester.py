@@ -149,11 +149,11 @@ rndclear(32)
 # Rakettitiede go-around
 for i in [150, 149, 146, 149, 150, 160]:
 	a = chr(i)
-	x = random.randint(3, 16)
+	x = random.randint(3, 14)
 	y = random.randint(3, 10)
 	serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
 	move_to(x,y)
-	serwrite("Rakettitiede")
+	serwrite("OctaPentaVeega")
 
 	for i in range(32):
 		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
@@ -176,7 +176,7 @@ for i in [150, 149, 146, 149, 150, 160]:
 		serwrite(a)
 
 	move_to(x,y)
-	serwrite("            ")
+	serwrite("              ")
 
 rndclear(160)
 
@@ -237,7 +237,7 @@ move_to(0,0)
 serwrite("         OctaPentaVeega\n")
 
 ser.flush()
-time.sleep(5)
+time.sleep(3)
 
 for i in range(32):
 	serwrite("\x1BD")
