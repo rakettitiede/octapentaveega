@@ -391,12 +391,27 @@ handle_data:
 uart_gotdata:
 	; Check if we have data and handle it
 	;
+	sbrc state, st_uart		; Do we have UART byte in buffer?
+	rjmp uart_buffer_full		; Yes we do, handle it
+
+	; If no data in buffer, do we need to scroll row left?
+	;
+	sbrc state, st_left		; Scrolling row left?
+	rjmp row_left			; Yes, jump to left scroll
+
+	; Scroll whole screen up?
+	;
 	sbrc state, st_scroll		; Scrolling screen up?
 	rjmp scroll_later		; Yes. Now is later!
 
-	sbrs state, st_uart		; Do we have something in buffer?
-	rjmp wait_hsync			; If we don't, go wait HSYNC
-	cbr state, st_uart_val		; We have byte, clear UART buffer state
+	; Nothing to do
+	rjmp wait_hsync
+
+uart_buffer_full:	
+	; We have "full buffer" (1 byte)
+	; handle it now!
+	;
+	cbr state, st_uart_val		; Tell we're emptying buffer
 
 	cpse ansi_state, zero		; Are we in ANSI handling mode?
 	rjmp handle_ansi		; Yes we are, jump to handle ansi
@@ -776,7 +791,7 @@ row_left_start:
 	scr_left
 
 	cbr state, st_row_first_val
-	rjmp wait_uart
+	rjmp wait_hsync
 
 row_left_second:
 	; Second half of row-left-scroll
@@ -812,7 +827,7 @@ row_left_second:
 	; Implicate that row is done
 	;
 	cbr state, st_left_val
-	rjmp wait_uart
+	rjmp wait_hsync
 
 
 scroll_later:
@@ -1129,12 +1144,6 @@ vblank:
 	sbrc state, st_clear		; If bit it clear, we skip
 	rjmp clear_screen 		; the jump to screen clearing
 
-	; Check for row left scroll
-	;
-	sbrc state, st_left		; Scrolling row left?
-	rjmp row_left			; Yes, jump to left scroll
-
-	; Check for full screen left scroll
 	in temp, LEFT_CNT		; Do we need to scroll screen left?
 	cpse zero, temp			; Skip next command if we don't
 	rjmp scroll_screen_left		; Yes we do, jump to scroll
@@ -1176,6 +1185,9 @@ drawbuf_clear_loop:
 	rjmp wait_uart
 
 scroll_screen_left:
+	sbrc state, st_left		; If row scrolling is ongoing
+	rjmp wait_uart			; do nothing
+
 	sbrc state, st_full_left	; If screen scrolling is ongoing
 	rjmp scroll_wait_row		; wait for "row 14"
 
