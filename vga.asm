@@ -690,8 +690,8 @@ unknown_ansi:
 	rjmp not_special		; No it was not..
 
 	in temp, LEFT_CNT		; Increase the screen
-	ldi temp2, 255			; left scroll counter
-	cpse temp, temp2		; Max out at 255
+	ldi temp2, 32			; left scroll counter
+	cpse temp, temp2		; Max out counter at 32 columns
 	inc temp
 	out LEFT_CNT, temp
  
