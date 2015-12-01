@@ -63,8 +63,12 @@ character on row.
 
 Example: <ESC>[9[ scrolls row 9 (10th row) left one column.
 -----------------------------------------------------------------------------
+Scroll full screen left		<ESC>D		(Notice missing [ -char)
+one column, emptying last
+character of every row
+-----------------------------------------------------------------------------
 
-<ESC> followed by any other character than '[' stores the character as-is
-to screen buffer, allowing to display special characters on screen.
+<ESC> followed by any other character than '[' or 'D' stores the character
+as-is to screen buffer, allowing to display special characters on screen.
 
 
