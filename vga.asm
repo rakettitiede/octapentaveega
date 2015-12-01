@@ -355,18 +355,16 @@ uart_receive:
 uart_sample_seq:
 	; We are ready to sample a bit, but first let's
 	; check if we need to update UART sequence
-	; (if uart_seq contains value 1) or are we just
-	; waiting for stop bit (uart_seq contains 7)
 	;
 	ldi temp, 3
-	cp uart_seq, temp		; Stop bit sequence
-	brne uart_seq_update
+	cp uart_seq, temp		; Was it stop bit?
+	brne uart_seq_update		; Not stop bit, continue to sequence update
 	clr uart_seq			; Stop bit. Clear uart_seq (wait start)
 	rjmp wait_hsync			; Go wait for hsync
 
 uart_seq_update:
-	cp uart_seq, one
-	brne uart_sample		; No need to update sequence
+	cp uart_seq, one		; Check if sequence contains "1"
+	brne uart_sample		; It doesn't, no need to update sequence
 	ldi temp, UART_XOR
 	eor uart_next, temp		; Switch between "3,3" and "4" cycles
 	mov uart_seq, uart_next 	; and move it to next sequence
@@ -393,15 +391,11 @@ handle_data:
 uart_gotdata:
 	; Check if we have data and handle it
 	;
-	sbrc state, st_left
-	rjmp row_left
-
-	sbrc state, st_scroll		; We've scrolled, clear one line?
-	rjmp scroll_later
+	sbrc state, st_scroll		; Scrolling screen up?
+	rjmp scroll_later		; Yes. Now is later!
 
 	sbrs state, st_uart		; Do we have something in buffer?
 	rjmp wait_hsync			; If we don't, go wait HSYNC
-
 	cbr state, st_uart_val		; We have byte, clear UART buffer state
 
 	cpse ansi_state, zero		; Are we in ANSI handling mode?
@@ -782,7 +776,7 @@ row_left_start:
 	scr_left
 
 	cbr state, st_row_first_val
-	rjmp wait_hsync
+	rjmp wait_uart
 
 row_left_second:
 	; Second half of row-left-scroll
@@ -818,7 +812,7 @@ row_left_second:
 	; Implicate that row is done
 	;
 	cbr state, st_left_val
-	rjmp wait_hsync
+	rjmp wait_uart
 
 
 scroll_later:
@@ -1135,6 +1129,12 @@ vblank:
 	sbrc state, st_clear		; If bit it clear, we skip
 	rjmp clear_screen 		; the jump to screen clearing
 
+	; Check for row left scroll
+	;
+	sbrc state, st_left		; Scrolling row left?
+	rjmp row_left			; Yes, jump to left scroll
+
+	; Check for full screen left scroll
 	in temp, LEFT_CNT		; Do we need to scroll screen left?
 	cpse zero, temp			; Skip next command if we don't
 	rjmp scroll_screen_left		; Yes we do, jump to scroll
@@ -1176,9 +1176,6 @@ drawbuf_clear_loop:
 	rjmp wait_uart
 
 scroll_screen_left:
-	sbrc state, st_left		; If row scrolling is ongoing
-	rjmp wait_uart			; do nothing
-
 	sbrc state, st_full_left	; If screen scrolling is ongoing
 	rjmp scroll_wait_row		; wait for "row 14"
 
