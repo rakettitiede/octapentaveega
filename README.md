@@ -13,6 +13,13 @@ Links:
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxWV9LSjZBRmliVkU/view" target="_blank">Video</a>
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxX01pTTFlNDU0SFE/view" target="_blank">Another video</a>
 
+Board photos:
+* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxaFFxam1uVW05NlE/view" target="_blank">B/W board</a>
+* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxRXVzSUNCT1h2NHM/view" target="_blank">8-color board</a>
+* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxX2VmQmw3aXhWUDA/view" target="_blank">8-color board back</a>
+* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxUDQ4QUduWDV2TFE/view" target="_blank">Arduino shield</a>
+
+
 <p>
 <img src="https://raw.githubusercontent.com/Jartza/octapentaveega/master/schematics.png" border="0">
 

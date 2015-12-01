@@ -236,7 +236,13 @@ for i in range(32):
 move_to(0,0)
 serwrite("         OctaPentaVeega\n")
 
-time.sleep(3)
+ser.flush()
+time.sleep(5)
+
+for i in range(32):
+	serwrite("\x1BD")
+	ser.flush()
+	time.sleep(0.016)
 
 ser.flush()
 ser.close()
