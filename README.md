@@ -13,7 +13,7 @@ Links:
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxUUF5M19zWndPQk0/view" target="_blank">Picture (B/W)</a>
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxai1tc0ZBa0o2TTQ/view" target="_blank">Video (8-color, ansitester.py)</a>
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxN2liTkhpTHNTNDA/view" target="_blank">Full screen scroll video (B/W)</a>
-* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxNW1HaUxYRUZhdUk/view" target="_blank">Individual row scroll video (B/W, bad quality)</a>
+* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxN29YOVFsZFJ2Sm8/view" target="_blank">Individual row scroll video (B/W)</a>
 
 Board photos:
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxaFFxam1uVW05NlE/view" target="_blank">B/W board</a>
