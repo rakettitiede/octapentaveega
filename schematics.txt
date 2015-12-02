@@ -26,7 +26,7 @@ Simplified three attiny, 8 color setup schematics:
                                        +--|0.1uF|---GND       
       (pullup)        /--\  /--\       |                      
   VCC---[10k]-----PB5 |  \--/  | VCC---*--- +5V                
-                      |cBLK    |             
+                      |cBLU    |             
 20MHz CLOCK-------PB3 | ATTINY | PB2---------------------+ 
                       |        |                         |     
 +-----------------PB4 |   85   | PB1---[470]---BLUE      |   
@@ -39,7 +39,7 @@ Simplified three attiny, 8 color setup schematics:
 |                                      +--|0.1uF|---GND  |   |
 |     (pullup)        /--\  /--\       |                 |   |
 | VCC---[10k]-----PB5 |  \--/  | VCC---*--- +5V          |   |
-|                     |cBLK    |                         |   |
+|                     |cGRE    |                         |   |
 +-----------------PB3 | ATTINY | PB2---------------------*   |
                       |        |                         |   |
 +-----------------PB4 |   85   | PB1---[470]---GREEN     |   |
@@ -52,7 +52,7 @@ Simplified three attiny, 8 color setup schematics:
 |             |                        +--|0.1uF|---GND  |   |
 |    (pullup) |       /--\  /--\       |                 |   |
 | VCC---[10k]-*---PB5 |  \--/  | VCC---*--- +5V          |   |
-|                     |cBLK    |                         |   |
+|                     |cRED    |                         |   |
 +---------------- PB3 | ATTINY | PB2---------------------*-------VSYNC
                       |        |                             |
          HSYNC----PB4 |   85   | PB1---[470]---RED           |
