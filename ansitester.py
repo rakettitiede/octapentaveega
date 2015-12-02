@@ -223,7 +223,7 @@ set_color(7, 0)
 ser.flush()
 
 # Scroll text
-for i in range(3 * len(scrolltext)):
+for i in range(len(scrolltext)):
 	serwrite("\x1B[[" + scrolltext[i % len(scrolltext)])
 	ser.flush()
 	time.sleep(0.08)
