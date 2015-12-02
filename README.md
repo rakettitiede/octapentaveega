@@ -10,8 +10,7 @@ Wiring 3 Attinys together gets you 8 color output :)
 
 Links:
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxNGdTYTRxeS1GcVU/view" target="_blank">Picture</a>
-* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxWV9LSjZBRmliVkU/view" target="_blank">Video</a>
-* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxX01pTTFlNDU0SFE/view" target="_blank">Another video</a>
+* <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxai1tc0ZBa0o2TTQ/view" target="_blank">Video (8-color)</a>
 
 Board photos:
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxaFFxam1uVW05NlE/view" target="_blank">B/W board</a>
