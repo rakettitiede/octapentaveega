@@ -66,6 +66,15 @@ Example: <ESC>[9[ scrolls row 9 (10th row) left one column.
 Scroll full screen left		<ESC>D		(Notice missing [ -char)
 one column, emptying last
 character of every row
+
+Notice about full-screen scroll. The implementation scrolls full screen
+during VBLANK, so it happens at max. 60 times a second. It's recommended to
+not send screen scroll -command more often than 60 times a second, if you want
+to avoid any "strangeness" in screen update. Recommendation is to send
+scroll commands fastest at 16.7ms apart from each other.
+
+32 scroll commands are "buffered" if sent before the actual scroll 
+has commenced.
 -----------------------------------------------------------------------------
 
 <ESC> followed by any other character than '[' or 'D' stores the character
