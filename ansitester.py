@@ -79,12 +79,10 @@ directions = [
 
 worms = [
 	{ "x" : 16, "y" :  0, "dir" : 2, "color" : 1},
-#	{ "x" : 16, "y" : 13, "dir" : 0, "color" : 2},
 	{ "x" : 12, "y" : 10, "dir" : 2, "color" : 3},
-	{ "x" : 16, "y" :  7, "dir" : 1, "color" : 4},
-#	{ "x" : 31, "y" :  7, "dir" : 1, "color" : 5},
+	{ "x" : 31, "y" :  7, "dir" : 1, "color" : 5},
 	{ "x" : 22, "y" :  4, "dir" : 3, "color" : 6},
-#	{ "x" :  0, "y" :  7, "dir" : 3, "color" : 7},
+	{ "x" :  0, "y" :  7, "dir" : 3, "color" : 7},
 ]
 
 serwrite("xx\x08") # dismiss if we're left in ANSI mode...
@@ -97,7 +95,6 @@ delay = 0.4
 for zz in range(200):
 	text = random.choice([
 		'512 bytes RAM\n',
-		'Rakettitiede Oy\n',
 		'This is Attiny85 VGA\n',
 		'8 bits rules!\n',
 		'Jartza made this\n',
@@ -146,7 +143,7 @@ for z in range(200):
 rndclear(160)
 rndclear(32)
 
-# Rakettitiede go-around
+# Colors go-around
 for i in [150, 149, 146, 149, 150, 160]:
 	a = chr(i)
 	x = random.randint(3, 14)
@@ -242,7 +239,7 @@ time.sleep(3)
 for i in range(32):
 	serwrite("\x1BD")
 	ser.flush()
-	time.sleep(0.016)
+	time.sleep(0.05)
 
 ser.flush()
 ser.close()
