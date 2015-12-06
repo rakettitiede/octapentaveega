@@ -399,6 +399,12 @@ uart_gotdata:
 	sbrc state, st_left		; Scrolling row left?
 	rjmp row_left			; Yes, jump to left scroll
 
+	; Check if we need to scroll whole screen left?
+	;
+	in temp, LEFT_CNT		; Do we need to scroll screen left?
+	cpse zero, temp			; Skip next command if we don't
+	rjmp scroll_screen_left		; Yes we do, jump to scroll
+
 	; Scroll whole screen up?
 	;
 	sbrc state, st_scroll		; Scrolling screen up?
@@ -406,6 +412,36 @@ uart_gotdata:
 
 	; Nothing to do
 	rjmp wait_hsync
+
+scroll_screen_left:
+	sbrc state, st_full_left	; If screen scrolling is ongoing
+	rjmp scroll_wait_row		; wait for "row 14"
+
+	sbr state, st_left_val		; Set row scrolling to happen later
+	sbr state, st_row_first_val 	; row-by-row
+	sbr state, st_full_left_val
+	clr scroll_row			; Start from row 0
+
+	rjmp wait_hsync
+
+scroll_wait_row:
+	ldi temp, 14
+	cp scroll_row, temp		; See if we've done full 
+	breq scroll_dec_count		; screen
+
+	sbr state, st_left_val		; Set row scrolling to happen later
+	sbr state, st_row_first_val 	; row-by-row
+
+	rjmp wait_hsync			; just jump to wait for uart
+
+scroll_dec_count:
+	in temp, LEFT_CNT		; We've done full screen,
+	dec temp			; decrease the counter of 
+	out LEFT_CNT, temp		; screenfuls to scroll
+
+	cbr state, st_full_left_val	; Check scroll on next round again
+	rjmp wait_hsync
+
 
 uart_buffer_full:	
 	; We have "full buffer" (1 byte)
@@ -1145,11 +1181,7 @@ vblank:
 	;
 	sbrc state, st_clear		; If bit it clear, we skip
 	rjmp clear_screen 		; the jump to screen clearing
-
-	in temp, LEFT_CNT		; Do we need to scroll screen left?
-	cpse zero, temp			; Skip next command if we don't
-	rjmp scroll_screen_left		; Yes we do, jump to scroll
-	rjmp wait_uart			; No we don't need to
+	rjmp wait_uart
 
 screen_done:
 	; We have drawn full screen, initialize values
@@ -1184,36 +1216,4 @@ drawbuf_clear_loop:
 	st Y+, zero
 	dec temp
 	brne drawbuf_clear_loop
-	rjmp wait_uart
-
-scroll_screen_left:
-	sbrc state, st_left		; If row scrolling is ongoing
-	rjmp wait_uart			; do nothing
-
-	sbrc state, st_full_left	; If screen scrolling is ongoing
-	rjmp scroll_wait_row		; wait for "row 14"
-
-	sbr state, st_left_val		; Set row scrolling to happen later
-	sbr state, st_row_first_val 	; row-by-row
-	sbr state, st_full_left_val
-	clr scroll_row			; Start from row 0
-
-	rjmp wait_uart
-
-scroll_wait_row:
-	ldi temp, 14
-	cp scroll_row, temp		; See if we've done full 
-	breq scroll_dec_count		; screen
-
-	sbr state, st_left_val		; Set row scrolling to happen later
-	sbr state, st_row_first_val 	; row-by-row
-
-	rjmp wait_uart			; just jump to wait for uart
-
-scroll_dec_count:
-	in temp, LEFT_CNT		; We've done full screen,
-	dec temp			; decrease the counter of 
-	out LEFT_CNT, temp		; screenfuls to scroll
-
-	cbr state, st_full_left_val	; Check scroll on next round again
 	rjmp wait_uart
