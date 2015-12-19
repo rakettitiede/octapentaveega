@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                            ;;
-;;  32 x 14 character VGA output with UART for Attiny85.                      ;;
+;;  32 x 16 character VGA output with UART for Attiny85.                      ;;
 ;;                                                                            ;;
 ;;  (C) Copyright 2015 Jari Tulilahti                                         ;;
 ;;                                                                            ;;
@@ -121,7 +121,7 @@
 ;
 .equ LEFT_CNT		= GPIOR0
 
-; All of the 512 byte SRAM is used for buffers.
+; All of the 512 byte SRAM is used for screen buffer.
 ;
 .dseg
 .org 0x60
@@ -410,7 +410,7 @@ scroll_screen_left:
 	rjmp scroll_wait_row		; wait for "row 16"
 
 	sbr state, st_left_val		; Set row scrolling to happen later
-	sbr state, st_row_first_val 	; row-by-row
+	clr seq_cnt
 	sbr state, st_full_left_val
 	clr scroll_row			; Start from row 0
 
@@ -422,7 +422,7 @@ scroll_wait_row:
 	breq scroll_dec_count		; screen
 
 	sbr state, st_left_val		; Set row scrolling to happen later
-	sbr state, st_row_first_val 	; row-by-row
+	clr seq_cnt
 
 	rjmp wait_hsync			; just jump to wait for uart
 
@@ -644,7 +644,7 @@ ansi_command:
 
 ansi_scroll_row_left:
 	sbr state, st_left_val		; Set row scrolling to happen later
-	sbr state, st_row_first_val 	; and clear half a row at a time
+	clr seq_cnt
 	mov scroll_row, ansi_val1	; Store row number for later
 	rjmp ansi_done
 
@@ -793,40 +793,16 @@ row_left:
 	subi YH, 2			; compensate overflow
 
 row_left_start:
-	sbrs state, st_row_first 	; First half of screen?
-	rjmp row_left_second 		; nope, second
-
 	.macro scr_left
 		ldd temp, Y+1
 		st Y+, temp
 	.endmacro
 
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-
-	cbr state, st_row_first_val
-	rjmp jitternop
-
-row_left_second:
-	; Second half of row-left-scroll
-	;
-	ldi temp, 16
+	mov temp, seq_cnt
+	swap temp
+	lsr temp
 	add YL, temp
-	adc YH, zero
+	inc seq_cnt
 
 	scr_left
 	scr_left
@@ -836,26 +812,26 @@ row_left_second:
 	scr_left
 	scr_left
 	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
-	scr_left
 
+	ldi temp, 4
+	cp temp, seq_cnt
+	breq row_left_done
+
+	rjmp wait_hsync
+
+row_left_done:
 	ldi temp, 32
-	st Y, temp
+	st -Y, temp
 
 	; Increase row count in case we're full-screen scrolling
 	;
-	sbrc state, st_left
+	sbrc state, st_full_left
 	inc scroll_row
 
 	; Implicate that row is done
 	;
 	cbr state, st_left_val
-	rjmp jitternop
+	rjmp wait_hsync
 
 
 scroll_later:
