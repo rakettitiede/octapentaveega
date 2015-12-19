@@ -208,7 +208,7 @@ for x in range(8):
 	move_to(2, x + 8)
 	set_color(7, 0)
 	serwrite("fg {0}".format(x))
-	move_to(8, x + 6)
+	move_to(8, x + 8)
 	for i in range(8):
 		set_color(x, i)	
 		serwrite("xY")
