@@ -37,8 +37,8 @@
 
 .def zero		= r0		; Register for value 0
 .def one 		= r1		; Register for value 1
-;.def alt 		= r2		; Buffer alternating value
-.def alt_cnt		= r3		; Buffer alternating counter
+.def seq_cnt		= r2		; Counter for several sequences
+.def row_cnt		= r3		; Vertical pixel counter
 .def char_x		= r4		; Predraw-buffer x-offset
 .def uart_seq		= r5		; UART sequence
 .def uart_next		= r6		; Next UART sequence
@@ -152,7 +152,7 @@ main:
 	clr vline_lo			; Vertical line low
 	clr vline_hi 			; Vertical line high
 	ldi temp, 3
-	mov alt_cnt, temp		; Alternating counter
+	mov row_cnt, temp		; Alternating counter
 	clr char_x			; X offset
 	ldi font_hi, 0x16		; Font flash addr high byte
 
@@ -564,6 +564,8 @@ scroll_screen:
 	; later, without loop
 	;
 	sbr state, st_scroll_val	; Set scrolling to happen later
+	ldi temp, 2
+	mov seq_cnt, temp		; Scroll happens in 2 sequences
 	rjmp wait_hsync
 
 handle_ansi:
@@ -866,51 +868,58 @@ scroll_later:
 	adc YH, scroll_hi
 	ldi temp, 32
 
+	dec seq_cnt
+	breq scroll_later_second
+
 	; Store space, unrolled 32 times
 	;
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
-	st Y+, temp
+	st Y, temp
+	std Y+1, temp
+	std Y+2, temp
+	std Y+3, temp
+	std Y+4, temp
+	std Y+5, temp
+	std Y+6, temp
+	std Y+7, temp
+	std Y+8, temp
+	std Y+9, temp
+	std Y+10, temp
+	std Y+11, temp
+	std Y+12, temp
+	std Y+13, temp
+	std Y+14, temp
+	std Y+15, temp
+	std Y+16, temp
+	rjmp wait_hsync
 
-	add scroll_lo, temp		; Move scroll offset by 32 bytes
-	adc scroll_hi, zero		; (one row)
+	scroll_later_second:
+		; Second part of the row clearing
+		;
+		std Y+17, temp
+		std Y+18, temp
+		std Y+19, temp
+		std Y+20, temp
+		std Y+21, temp
+		std Y+22, temp
+		std Y+23, temp
+		std Y+24, temp
+		std Y+25, temp
+		std Y+26, temp
+		std Y+27, temp
+		std Y+28, temp
+		std Y+29, temp
+		std Y+30, temp
+		std Y+31, temp
 
-	cbr state, st_scroll_val	; Remove scroll-later state
+		add scroll_lo, temp		; Move scroll offset by 32 bytes
+		adc scroll_hi, zero		; (one row)
 
-	cpi scroll_hi, 2		; Check scroll roll over
-	brne jitternop			; No, not yet
+		cbr state, st_scroll_val	; Remove scroll-later state
 
-	clr scroll_hi			; Overflow, clear scroll offset
-	rjmp jitternop
+		cpi scroll_hi, 2		; Check scroll roll over
+		brne wait_hsync			; No, not yet
+
+		clr scroll_hi			; Overflow, clear scroll offset
 
 wait_hsync:
 	; Wait for HSYNC timer to reach specified value
@@ -978,8 +987,8 @@ clear_loop:
 	cbr state, st_clear_val		; Everything cleared, clear state bit
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
-	ldi temp, 3 			; resetting alt and 
-	mov alt_cnt, temp 		; alternating counter after clear
+	ldi temp, 3 			; resetting vertical pixel
+	mov row_cnt, temp 		; counter after clear
 	clr scroll_hi
 	clr scroll_lo
 	clr cursor_hi
@@ -1046,7 +1055,7 @@ check_housekeep:
 	; If we have drawn the current line 4 times,
 	; time to do some housekeeping.
 	;
-	dec alt_cnt
+	dec row_cnt
 	breq housekeeping
 
 	rjmp wait_uart
@@ -1057,7 +1066,7 @@ housekeeping:
 	; have been drawn
 	;
 	ldi temp, 3
-	mov alt_cnt, temp 		; Reset drawn line counter
+	mov row_cnt, temp 		; Reset pixel counter
 	inc font_hi			; Increase font line
 
 	; Check if we have drawn one character line
@@ -1127,7 +1136,7 @@ screen_done:
 	clr vline_lo			; Vertical line low
 	clr vline_hi 			; Vertical line high
 	ldi temp, 3
-	mov alt_cnt, temp		; Alternating counter
+	mov row_cnt, temp		; Pixel counter
 	clr char_x			; X offset
 	ldi font_hi, 0x16		; Font flash addr high byte
 
