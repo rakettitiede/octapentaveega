@@ -213,33 +213,33 @@ for x in range(8):
 		serwrite("\x1B[m ")	
 
 # Disable wrap and move cursor to 31, 0
-#serwrite("\x1B[?7l")
-#move_to(31, 0)
-#set_color(7, 0)
+serwrite("\x1B[?7l")
+move_to(31, 0)
+set_color(7, 0)
 
-#ser.flush()
+ser.flush()
 
 # Scroll text
-#for i in range(len(scrolltext)):
-#	serwrite("\x1B[[" + scrolltext[i % len(scrolltext)])
-#	ser.flush()
-#	time.sleep(0.08)
+for i in range(len(scrolltext)):
+	serwrite("\x1B[[" + scrolltext[i % len(scrolltext)])
+	ser.flush()
+	time.sleep(0.08)
 
-#for i in range(32):
-#	serwrite("\x1B[[")
-#	ser.flush()
-#	time.sleep(0.1)
+for i in range(32):
+	serwrite("\x1B[[")
+	ser.flush()
+	time.sleep(0.1)
 
-#move_to(0,0)
-#serwrite("         OctaPentaVeega\n")
+move_to(0,0)
+serwrite("         OctaPentaVeega\n")
 
-#ser.flush()
-#time.sleep(3)
+ser.flush()
+time.sleep(3)
 
-#for i in range(32):
-#	serwrite("\x1BD")
-#	ser.flush()
-#	time.sleep(0.05)
+for i in range(32):
+	serwrite("\x1BD")
+	ser.flush()
+	time.sleep(0.05)
 
 ser.flush()
 ser.close()

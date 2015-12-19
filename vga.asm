@@ -789,8 +789,7 @@ row_left:
 	cpc YH, temp			; address overflow
 	brlo row_left_start
 
-	subi YL, low(screen_end)	; compensate overflow
-	sbc YH, temp			; by subtracting 512
+	subi YH, 2			; compensate overflow
 
 row_left_start:
 	sbrs state, st_row_first 	; First half of screen?
@@ -819,7 +818,7 @@ row_left_start:
 	scr_left
 
 	cbr state, st_row_first_val
-	rjmp wait_hsync
+	rjmp jitternop
 
 row_left_second:
 	; Second half of row-left-scroll
@@ -855,7 +854,7 @@ row_left_second:
 	; Implicate that row is done
 	;
 	cbr state, st_left_val
-	rjmp wait_hsync
+	rjmp jitternop
 
 
 scroll_later:

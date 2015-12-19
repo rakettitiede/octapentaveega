@@ -50,9 +50,9 @@ scrolltext = "               " \
 a = 0
 
 while True:
-	for z in range(14):
+	for z in range(16):
 		move_to(31, z)
-		serwrite(scrolltext[a+(14 - z)])
+		serwrite(scrolltext[a+(16 - z)])
 		ser.flush()
 	serwrite("\x1BD")
 	ser.flush()
