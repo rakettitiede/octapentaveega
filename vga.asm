@@ -70,15 +70,13 @@
 .equ st_uart		= 2		; UART data in buffer
 .equ st_scroll		= 3		; Scroll-clear in action
 .equ st_left		= 4		; Scroll row left
-.equ st_row_first 	= 5		; Scroll row left, first half of a row
-.equ st_full_left 	= 6		; Scroll full screen
+.equ st_full_left 	= 5		; Scroll full screen
 .equ st_clear_val 	= (1 << 0)	; Value to set/clear clear mode
 .equ st_wrap_val 	= (1 << 1)	; Value to set/clear wrap mode
 .equ st_uart_val 	= (1 << 2)	; Value to set/clear UART buffer state
 .equ st_scroll_val 	= (1 << 3)	; Value to set/clear scroll-clear state
 .equ st_left_val 	= (1 << 4)	; Value to set/clear row-scroll
-.equ st_row_first_val 	= (1 << 5)	; Value to set/clear half-row-scroll
-.equ st_full_left_val 	= (1 << 6)	; Value to set/clear full-screen-scroll
+.equ st_full_left_val 	= (1 << 5)	; Value to set/clear full-screen-scroll
 
 ; ansi_state: (value)
 ;

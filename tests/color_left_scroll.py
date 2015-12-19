@@ -41,27 +41,27 @@ serwrite("\x1B[m") # Reset colors
 serwrite("\x1B[?7l") # disable wrap
 
 # Show color map
-scrolltext = "               " \
+scrolltext = "                   " \
 	"Attiny85 VGA, displaying 32x14 characters on screen " \
 	"with 6x8 pixel font. Single Attiny85 for Black & White output, " \
 	"Three Attiny85s for 8 color output :=) " \
 	"Industry standard VGA 640x480 @ 60Hz. It's called OctaPentaVeega..." \
-	"                    "
+	"                         "
 
 a = 0
 
 while True:
 	set_color((a % 7) + 1)
-	for z in range(14):
+	for z in range(16):
 		move_to(31, z)
-		serwrite(scrolltext[a+(14 - z)])
+		serwrite(scrolltext[a+(16 - z)])
 		ser.flush()
 	serwrite("\x1BD")
 	ser.flush()
 
 	a += 1
 
-	if a > len(scrolltext) - 15:
+	if a > len(scrolltext) - 18:
 		a = 0
 
 

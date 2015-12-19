@@ -59,7 +59,7 @@ while True:
 
 	a += 1
 
-	if a > len(scrolltext) - 16:
+	if a > len(scrolltext) - 18:
 		a = 0
 
 
