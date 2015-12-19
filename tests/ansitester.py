@@ -194,16 +194,18 @@ scrolltext = "Attiny85 VGA, displaying 32x14 characters on screen " \
 
 move_to(0, 2);
 serwrite("       (C) 2015 // Jartza\n")
+serwrite("\n")
+serwrite("    Attiny85 running @ 20MHz\n")
 
-move_to(0, 4)
+move_to(0, 6)
 serwrite("        Supported colors:\n")
 
-move_to(0, 5)
+move_to(0, 7)
 set_color(0, 7)
 serwrite("  bg :   0  1  2  3  4  5  6  7 \n")
 
 for x in range(8):
-	move_to(2, x + 6)
+	move_to(2, x + 8)
 	set_color(7, 0)
 	serwrite("fg {0}".format(x))
 	move_to(8, x + 6)
