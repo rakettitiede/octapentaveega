@@ -796,6 +796,10 @@ row_left_start:
 		st Y+, temp
 	.endmacro
 
+	ldi temp, 4
+	cp temp, seq_cnt
+	breq row_left_done
+
 	mov temp, seq_cnt
 	swap temp
 	lsr temp
@@ -810,10 +814,6 @@ row_left_start:
 	scr_left
 	scr_left
 	scr_left
-
-	ldi temp, 4
-	cp temp, seq_cnt
-	breq row_left_done
 
 	rjmp wait_hsync
 
