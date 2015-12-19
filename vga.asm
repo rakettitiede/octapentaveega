@@ -90,19 +90,19 @@
 
 ; Constants
 ;
-.equ UART_WAIT		= 130		; HSYNC timer value where we start to
+.equ UART_WAIT		= 135		; HSYNC timer value where we start to
 					; look for UART samples (or handle
 					; data received)
-.equ HSYNC_WAIT		= 157		; HSYNC value to start precalculating
+.equ HSYNC_WAIT		= 2		; HSYNC value to start precalculating
 					; the pixels and drawing to screen
-.equ JITTERVAL		= 8		; Must be in sync with HSYNC_WAIT value.
+.equ JITTERVAL		= 248		; Must be in sync with HSYNC_WAIT value.
 					; We want Timer0 counter to be 0-4 in
 					; jitterfix label. AVR Studio simulator
 					; was used to sync this value.
-.equ VSYNC_LOW		= 480 - 256	; Turn VSYNC low on this vertical line
+.equ VSYNC_LOW		= 489 - 256	; Turn VSYNC low on this vertical line
 .equ VSYNC_HIGH		= VSYNC_LOW + 2	; Turn VSYNC high on this vertical line
 .equ VSYNC_FULL		= 525 - 512	; Full screen is this many lines
-.equ VISIBLE		= 452 - 256	; Visible vline count (+4 lines)
+.equ VISIBLE		= 480 - 256	; Visible vline count (+4 lines)
 .equ UART_XOR		= 124		; UART sequence magic XORing value
 .equ UART_INIT 		= 100		; UART sequence initial value after start
 .equ UART_FIRST 	= 24		; UART first sequence
@@ -122,19 +122,12 @@
 .equ LEFT_CNT		= GPIOR0
 
 ; All of the 512 byte SRAM is used for buffers.
-; drawbuf is actually used in two parts, 32
-; bytes for currently drawn horizontal line and
-; 32 bytes for predrawing the next horizontal
-; pixel line. Buffer is flipped when single
-; line has been drawn 4 times.
 ;
 .dseg
 .org 0x60
 
-drawbuf:
-	.byte 64
 screenbuf:
-	.byte 448
+	.byte 512
 screen_end:
 
 ; Start the code section. 
@@ -159,10 +152,10 @@ main:
 	clr vline_lo			; Vertical line low
 	clr vline_hi 			; Vertical line high
 	clr alt 			; Alternate value
-	ldi temp, 4
+	ldi temp, 3
 	mov alt_cnt, temp		; Alternating counter
 	clr char_x			; X offset
-	ldi font_hi, 0x18		; Font flash addr high byte
+	ldi font_hi, 0x16		; Font flash addr high byte
 
 	clr one				; Register to hold
 	inc one				; the value 1
@@ -185,8 +178,8 @@ main:
 	;
 	sbr state, st_clear_val		; Initiate clear mode
 	clr clear_cnt			; Clear counter zeroed
-	ldi XL, low(drawbuf)		; Start from the beginning
-	ldi XH, high(drawbuf)		; of SRAM
+	ldi XL, low(screenbuf)		; Start from the beginning
+	ldi XH, high(screenbuf)		; of SRAM
 
 	; Set GPIO directions
 	;
@@ -319,7 +312,7 @@ wait_uart:
 	;
 	in temp, TCNT1
 	cpi temp, UART_WAIT
-	brne wait_uart
+	brlo wait_uart
 
 uart_handling:
 	; Check if we are already receiving,
@@ -415,7 +408,7 @@ uart_gotdata:
 
 scroll_screen_left:
 	sbrc state, st_full_left	; If screen scrolling is ongoing
-	rjmp scroll_wait_row		; wait for "row 14"
+	rjmp scroll_wait_row		; wait for "row 16"
 
 	sbr state, st_left_val		; Set row scrolling to happen later
 	sbr state, st_row_first_val 	; row-by-row
@@ -425,7 +418,7 @@ scroll_screen_left:
 	rjmp wait_hsync
 
 scroll_wait_row:
-	ldi temp, 14
+	ldi temp, 16
 	cp scroll_row, temp		; See if we've done full 
 	breq scroll_dec_count		; screen
 
@@ -475,8 +468,8 @@ handle_bs:
 	cpc cursor_hi, zero
 	brne backspace_no_ovf		; No overflow
 
-	ldi cursor_lo, 192		; Reset cursor location
-	ldi cursor_hi, 1
+	clr cursor_lo			; Reset cursor location
+	ldi cursor_hi, 2
 
 backspace_no_ovf:
 	sbiw cursor_hi:cursor_lo, 1 	; Move cursor backwards
@@ -553,8 +546,7 @@ no_wrap_increase:
 check_cursor_ovf:
 	; Check if cursor overflows the screen buffer
 	;
-	cpi cursor_lo, 192		; Check buffer end
-	cpc cursor_hi, one
+	cpi cursor_hi, 2
 	brne check_scroll		; Check if we need to scroll
 
 	clr cursor_lo			; End of buffer reached,
@@ -666,12 +658,10 @@ ansi_move_xy:
 	add cursor_lo, scroll_lo	; Add scroll offset to
 	adc cursor_hi, scroll_hi	; cursor
 
-	cpi cursor_lo, 192		; check if cursor overflows
-	cpc cursor_hi, one		; the screen buffer
+	cpi cursor_hi, 2		; check if cursor overflows screen
 	brlo no_move_overflow
 
-	subi cursor_lo, 192		; compensate overflow
-	sbc cursor_hi, one		; by subtracting 448
+	subi cursor_hi, 2		; compensate overflow
 
 no_move_overflow:
 	rjmp ansi_done
@@ -709,28 +699,9 @@ ansi_commence_clear:
 	;
 	sbr state, st_clear_val		; Initiate clear mode
 	clr clear_cnt			; Clear counter zeroed
-	ldi XL, low(drawbuf)		; Start from the beginning
-	ldi XH, high(drawbuf)		; of SRAM
+	ldi XL, low(screenbuf)		; Start from the beginning
+	ldi XH, high(screenbuf)		; of SRAM
 	clr ansi_state
-	rjmp wait_hsync
-
-unknown_ansi:
-	; Unknown ANSI escape after ESC. If it's not left scroll
-	; just print it into buffer. It might also be the scroll
-	; command which we check here
-	;
-	clr ansi_state 
-
-	ldi temp, 68			; Ascii 91 = D
-	cpse uart_buf, temp		; Was it left scroll?
-	rjmp not_special		; No it was not..
-
-	in temp, LEFT_CNT		; Increase the screen
-	ldi temp2, 32			; left scroll counter
-	cpse temp, temp2		; Max out counter at 32 columns
-	inc temp
-	out LEFT_CNT, temp
- 
 	rjmp wait_hsync
 
 ansi_set_color:
@@ -773,6 +744,25 @@ ansi_color_reset:
 	mov color_bg, temp		; Default background color
 	rjmp ansi_color_next
 
+unknown_ansi:
+	; Unknown ANSI escape after ESC. If it's not left scroll
+	; just print it into buffer. It might also be the scroll
+	; command which we check here
+	;
+	clr ansi_state 
+
+	ldi temp, 68			; Ascii 91 = D
+	cpse uart_buf, temp		; Was it left scroll?
+	rjmp not_special		; No it was not..
+
+	in temp, LEFT_CNT		; Increase the screen
+	ldi temp2, 32			; left scroll counter
+	cpse temp, temp2		; Max out counter at 32 columns
+	inc temp
+	out LEFT_CNT, temp
+ 
+	rjmp wait_hsync
+
 ansi_done:
 	clr ansi_state			; Done Parsing ANSI
 	rjmp wait_hsync			; Wait for HSYNC
@@ -799,8 +789,8 @@ row_left:
 	cpc YH, temp			; address overflow
 	brlo row_left_start
 
-	subi YL, 192			; compensate overflow
-	sbc YH, one			; by subtracting 448
+	subi YL, low(screen_end)	; compensate overflow
+	sbc YH, temp			; by subtracting 512
 
 row_left_start:
 	sbrs state, st_row_first 	; First half of screen?
@@ -870,7 +860,7 @@ row_left_second:
 
 scroll_later:
 	; We're scrolling. Clear the "last line on screen"
-	; and move the scroll offset.
+	; and move the scroll offset. Now is later!
 	;
 	ldi YL, low(screenbuf)		; Load screenbuffer address
 	ldi YH, high(screenbuf)
@@ -918,13 +908,11 @@ scroll_later:
 
 	cbr state, st_scroll_val	; Remove scroll-later state
 
-	ldi temp, 192
-	cp scroll_lo, temp		; Check if scroll needs to
-	cpc scroll_hi, one		; roll over
-	brne wait_hsync			; No, not yet
+	cpi scroll_hi, 2		; Check scroll roll over
+	brne jitternop			; No, not yet
 
-	clr scroll_lo			; Overflow, clear scroll offset
-	clr scroll_hi
+	clr scroll_hi			; Overflow, clear scroll offset
+	rjmp jitternop
 
 wait_hsync:
 	; Wait for HSYNC timer to reach specified value
@@ -952,6 +940,7 @@ jitternop:
 	nop
 	nop
 	nop
+	nop
 
 check_visible:
 	; Check if we are in visible screen area or in vertical blanking
@@ -971,20 +960,13 @@ visible_area:
 	; pixels.
 	;
 	sbrs state, st_clear
-	rjmp predraw 			; Draw pixels
+	rjmp draw_pixels 		; Draw pixels
 
 clear_screen:
 	; We jump here if clearing screen
 	;
 	ldi temp, 64
 	ldi temp2, 32
-
-	; First 64 bytes (hline buffer) is cleared with zero
-	; but the rest with space (32)
-	;
-	cp clear_cnt, zero 		; Is this first iteration (drawbuf area)
-	brne clear_loop 		; Not first, just jump to clearing
-	clr temp2			; First iteration emptied with 2
 
 clear_loop:
 	st X+, temp2 			; X is set when we get clear command.
@@ -999,9 +981,8 @@ clear_loop:
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
 	clr alt 			; Prevent crap on screen by
-	ldi temp, 4 			; resetting alt and 
-	mov alt_cnt, temp 		; alternating counter
-	clr char_x			; and X-offset after clear
+	ldi temp, 3 			; resetting alt and 
+	mov alt_cnt, temp 		; alternating counter after clear
 	clr scroll_hi
 	clr scroll_lo
 	clr cursor_hi
@@ -1009,56 +990,23 @@ clear_loop:
 	rjmp wait_uart			; Done clearing
 
 
-predraw:
-	; Fetch 8 bytes for next drawable line
-	; and draw pixels for current line. We repeat each line 4 times
-	; so finally we get 32 bytes for the next drawable line and
-	; repeat the process. X register already contains pointer to
-	; screen buffer, set in "screen_done"
-	;
-	ldi YL, low(drawbuf)		; Get predraw buffer address
-	ldi YH, high(drawbuf)		; to Y register by alternating
-	ldi temp, ALT_XOR		; alt with XOR value
-	eor alt, temp			; and adding result 
-	add YL, alt			; to buffer address, also
-	add YL, char_x			; add x-offset
-	mov ZH, font_hi			; Font flash high byte
-
-	; Fetch characters using macro, unrolled 8 times
-	.macro fetch_char
+draw_pixels:
+	; Macro to fetch character and push bits out of USI
+	.macro draw_char
 		ld ZL, X+		; Load char from screen buffer (X) to ZL
 		lpm temp, Z		; and fetch font byte from flash (Z)
-		st Y+, temp		; then store it to predraw buffer (Y)
+		out USIDR, temp		; then store it to predraw buffer (Y)
+		sbi USICR, USICLK	; Just push pixels out
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
+		sbi USICR, USICLK
 	.endmacro
 
-	fetch_char
-	fetch_char
-	fetch_char
-	fetch_char
-	fetch_char
-	fetch_char
-	fetch_char
-	fetch_char
-	
-	; Draw pixels, pushing them out from USI. We repeat this
-	; 32 times using macro, without looping, as timing is important
+	mov ZH, font_hi
+
+	; Fetch'n'draw 32 characters in unrolled loop
 	;
-	ldi YL, low(drawbuf)		; Get current draw buffer address
-	ldi YH, high(drawbuf)		; to Y register. Notice we don't add
-	ldi temp, ALT_XOR		; the high byte as we've reserved the
-	eor alt, temp 			; buffer from low 256 byte space
-	add YL, alt			
-
-	.macro draw_char
-		ld temp, Y+		; Load byte from hline buffer, inc Y
-		out USIDR, temp		; Throw byte into USI data register
-		sbi USICR, USICLK	; Clock bit out to wire
-		sbi USICR, USICLK	; Clock bit out to wire
-		sbi USICR, USICLK	; Clock bit out to wire
-		sbi USICR, USICLK	; Clock bit out to wire
-		sbi USICR, USICLK	; Clock bit out to wire
-	.endmacro
-
 	draw_char
 	draw_char
 	draw_char
@@ -1094,37 +1042,33 @@ predraw:
 
 	; Make sure we don't draw to porch
 	;
-	nop				; Wait for last pixel a while
-	out USIDR, zero			; Zero USI data register
+	sbi USICR, USICLK
+	sbiw XH:XL, 32			; Go back to beginning or row
 
 check_housekeep:
-	; Increase predraw buffer offset by 8
-	;
-	ldi temp, 8
-	add char_x, temp
-
 	; If we have drawn the current line 4 times,
 	; time to do some housekeeping.
 	;
 	dec alt_cnt
 	breq housekeeping
-	rjmp wait_uart			; Return to HSYNC waiting
+
+	rjmp wait_uart
 
 housekeeping:
 	; Advance to next line, alternate buffers
 	; and do some other housekeeping after pixels
 	; have been drawn
 	;
-	ldi temp, 4
+	ldi temp, 3
 	mov alt_cnt, temp 		; Reset drawn line counter
-	clr char_x			; Reset offset in predraw buffer
-	ldi temp, ALT_XOR
-	eor alt, temp 			; Alternate between buffers
 	inc font_hi			; Increase font line
 
 	; Check if we have drawn one character line
 	cpi font_hi, 0x20
 	brne housekeep_done		; Not yet full line
+
+	; Advance to next row
+	adiw XH:XL, 32
 
 	; Scroll support
 	;
@@ -1136,13 +1080,9 @@ housekeeping:
 	ldi XH, high(screenbuf)
 
 no_scr_ovf:
-	ldi font_hi, 0x18
-	rjmp wait_uart
-
+	ldi font_hi, 0x16
 housekeep_done:
-	sbiw XH:XL, 32			; Switch screenbuffer back to 
-					; the beginning of line
-	rjmp wait_uart			; Return waiting to UART
+	rjmp wait_uart
 
 vertical_sync:
 	; Check if we need to switch VSYNC low
@@ -1190,10 +1130,10 @@ screen_done:
 	clr vline_lo			; Vertical line low
 	clr vline_hi 			; Vertical line high
 	clr alt 			; Alternate value
-	ldi temp, 4
+	ldi temp, 3
 	mov alt_cnt, temp		; Alternating counter
 	clr char_x			; X offset
-	ldi font_hi, 0x18		; Font flash addr high byte
+	ldi font_hi, 0x16		; Font flash addr high byte
 
 	sbrc state, st_clear		; If we are in screen clearing mode,
 	rjmp wait_uart			; skip buffer clearing
@@ -1203,17 +1143,4 @@ screen_done:
 	add XL, scroll_lo		; Add scroll offset
 	adc XH, scroll_hi		; to address
 
-clear_drawbuf:
-	; Write zeroes to line buffer
-	;
-	ldi YL, low(drawbuf)
-	ldi YH, high(drawbuf)
-	ldi temp, 32			; Clear 32 bytes
-
-drawbuf_clear_loop:
-	; Clear drawbuffer-loop
-	;
-	st Y+, zero
-	dec temp
-	brne drawbuf_clear_loop
 	rjmp wait_uart

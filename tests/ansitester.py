@@ -37,8 +37,8 @@ set_color = lambda fg, bg = 0: serwrite("\x1B[3{0};4{1}m".format(fg, bg))
 
 def rndclear(c = 32, fg = 7, bg = 0):
 	serwrite("\x1B[3{0};4{1}m".format(fg,bg)) # Set colors
-	for loc in random.sample(range(448), 448):
-		move_to(int(loc / 14), loc % 14)
+	for loc in random.sample(range(512), 512):
+		move_to(int(loc / 16), loc % 16)
 		serwrite(chr(c))
 	serwrite("\x1B[H") # Move cursor to 0,0
 
@@ -117,7 +117,7 @@ d = 1
 c = 0
 for zz in range(560):
 	set_color(int(c), int(c - 0.5))
-	move_to(x, 13)
+	move_to(x, 15)
 	serwrite("\x96\x96\x96\x96\x96\x96\x96\x96\n")
 	x += d
 	c += .25
@@ -133,7 +133,7 @@ for z in range(200):
 	for worm in worms:
 		move = directions[worm["dir"]]
 		worm["x"] = (worm["x"] + move["x"]) % 32
-		worm["y"] = (worm["y"] + move["y"]) % 14
+		worm["y"] = (worm["y"] + move["y"]) % 16
 		turn = random.choice([1, 2, 0, 0, 0])
 		move_to(worm["x"], worm["y"])
 		set_color(worm["color"])
@@ -146,7 +146,7 @@ rndclear(32)
 # Colors go-around
 for i in [150, 149, 146, 149, 150, 160]:
 	a = chr(i)
-	x = random.randint(3, 14)
+	x = random.randint(3, 16)
 	y = random.randint(3, 10)
 	serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
 	move_to(x,y)
@@ -157,17 +157,17 @@ for i in [150, 149, 146, 149, 150, 160]:
 		move_to(i, 0)
 		serwrite(a)
 
-	for i in range(0,14):
+	for i in range(0,16):
 		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
 		move_to(31, i)
 		serwrite(a)
 
 	for i in range(31,-1,-1):
 		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
-		move_to(i, 13)
+		move_to(i, 15)
 		serwrite(a)
 
-	for i in range(13,-1,-1):
+	for i in range(15,-1,-1):
 		serwrite("\x1B[3{0}m".format(random.randint(1, 7)))
 		move_to(0, i)
 		serwrite(a)
@@ -180,7 +180,7 @@ rndclear(160)
 # Random color characters
 for zz in range(20):
 	for i in range(65,91):
-		move_to(random.randint(0, 31), random.randint(0, 13))
+		move_to(random.randint(0, 31), random.randint(0, 15))
 		(f, b) = random.sample(range(8), 2)
 		set_color(f, b)
 		serwrite(chr(i))
@@ -213,33 +213,33 @@ for x in range(8):
 		serwrite("\x1B[m ")	
 
 # Disable wrap and move cursor to 31, 0
-serwrite("\x1B[?7l")
-move_to(31, 0)
-set_color(7, 0)
+#serwrite("\x1B[?7l")
+#move_to(31, 0)
+#set_color(7, 0)
 
-ser.flush()
+#ser.flush()
 
 # Scroll text
-for i in range(len(scrolltext)):
-	serwrite("\x1B[[" + scrolltext[i % len(scrolltext)])
-	ser.flush()
-	time.sleep(0.08)
+#for i in range(len(scrolltext)):
+#	serwrite("\x1B[[" + scrolltext[i % len(scrolltext)])
+#	ser.flush()
+#	time.sleep(0.08)
 
-for i in range(32):
-	serwrite("\x1B[[")
-	ser.flush()
-	time.sleep(0.1)
+#for i in range(32):
+#	serwrite("\x1B[[")
+#	ser.flush()
+#	time.sleep(0.1)
 
-move_to(0,0)
-serwrite("         OctaPentaVeega\n")
+#move_to(0,0)
+#serwrite("         OctaPentaVeega\n")
 
-ser.flush()
-time.sleep(3)
+#ser.flush()
+#time.sleep(3)
 
-for i in range(32):
-	serwrite("\x1BD")
-	ser.flush()
-	time.sleep(0.05)
+#for i in range(32):
+#	serwrite("\x1BD")
+#	ser.flush()
+#	time.sleep(0.05)
 
 ser.flush()
 ser.close()

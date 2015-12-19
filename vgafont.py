@@ -26,19 +26,19 @@ try:
 	f.close()
 
 	fontdata = []
-	font = [0] * 256 * 8
+	font = [0] * 256 * 10
 
 	for line in data:
 		line = str().join(map(lambda x: x if x in "0123456789=.x" else "", line))
 		if len(line) > 2:
 			fontdata.append(line)
 
-	index = 32 * 8
+	index = 32 * 10
 
 	for line in fontdata:
 		if line.endswith("="):
 			try:
-				index = int(line.strip("=")) * 8
+				index = int(line.strip("=")) * 10
 			except:
 				index = 0
 		elif len(line) == 6:
@@ -47,9 +47,9 @@ try:
 			index += 1
 
 	for i in range(32, 160):
-		for h in range(8):
-			x = (i * 8) + h
-			z = (((i + 128) & 255) * 8) + h
+		for h in range(10):
+			x = (i * 10) + h
+			z = (((i + 128) & 255) * 10) + h
 			font[z] = font[x] ^ 252
 
 
@@ -81,20 +81,20 @@ try:
 	f.write( "; Automatically generated file. DO NOT EDIT!\n")
 	f.write("\n")
 	f.write( ".cseg\n")
-	f.write( ".org 0xC00\n")
+	f.write( ".org 0xB00\n")
 	f.write("\n")
 	f.write( "font:\n")
 	f.write( "\t.db ")
 
 	cnt = 0
 
-	for i in range(8):
+	for i in range(10):
 		for h in range(256):
-			fontline = font[(h * 8) + i]
+			fontline = font[(h * 10) + i]
 			f.write("0x{0:02x}".format(fontline))
 			cnt += 1
 			if cnt == 8:
-				if [h, i] == [255, 7]:
+				if [h, i] == [255, 9]:
 					f.write("\n")
 				else:
 					f.write("\n\t.db ")
