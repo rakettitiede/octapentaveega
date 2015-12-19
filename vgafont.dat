@@ -6,8 +6,8 @@ script. This file is basically very free-form and you can add many comments,
 the only needed information about formatting is:
 
 	To define font for character, place it's ascii value followed
-	by equal sign on single line alone, followed by 8 lines containing
-	6 character each: (6 x 8 pixel font):
+	by equal sign on single line alone, followed by 10 lines containing
+	6 character each: (6 x 10 pixel font):
 
 	dot (.)		no pixel
 	small x		pixel
@@ -1246,7 +1246,7 @@ x...x.
 x...x.
 xxxx..
 x.....
-......
+x.....
 
 
 Small q
@@ -1286,11 +1286,11 @@ Small s
 ......
 ......
 ......
-.xxx..
+.xxxx.
 x.....
 .xxx..
 ....x.
-.xxx..
+xxxx..
 ......
 
 

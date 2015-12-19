@@ -37,7 +37,7 @@
 
 .def zero		= r0		; Register for value 0
 .def one 		= r1		; Register for value 1
-.def alt 		= r2		; Buffer alternating value
+;.def alt 		= r2		; Buffer alternating value
 .def alt_cnt		= r3		; Buffer alternating counter
 .def char_x		= r4		; Predraw-buffer x-offset
 .def uart_seq		= r5		; UART sequence
@@ -151,7 +151,6 @@ main:
 	clr state			; Zero state
 	clr vline_lo			; Vertical line low
 	clr vline_hi 			; Vertical line high
-	clr alt 			; Alternate value
 	ldi temp, 3
 	mov alt_cnt, temp		; Alternating counter
 	clr char_x			; X offset
@@ -979,7 +978,6 @@ clear_loop:
 	cbr state, st_clear_val		; Everything cleared, clear state bit
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
-	clr alt 			; Prevent crap on screen by
 	ldi temp, 3 			; resetting alt and 
 	mov alt_cnt, temp 		; alternating counter after clear
 	clr scroll_hi
@@ -1128,7 +1126,6 @@ screen_done:
 	;
 	clr vline_lo			; Vertical line low
 	clr vline_hi 			; Vertical line high
-	clr alt 			; Alternate value
 	ldi temp, 3
 	mov alt_cnt, temp		; Alternating counter
 	clr char_x			; X offset
