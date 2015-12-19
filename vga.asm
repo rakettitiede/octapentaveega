@@ -861,6 +861,8 @@ row_left_second:
 scroll_later:
 	; We're scrolling. Clear the "last line on screen"
 	; and move the scroll offset. Now is later!
+	; We also do this during two horizontal lines
+	; because clock deprivation :)
 	;
 	ldi YL, low(screenbuf)		; Load screenbuffer address
 	ldi YH, high(screenbuf)
@@ -892,34 +894,34 @@ scroll_later:
 	std Y+16, temp
 	rjmp wait_hsync
 
-	scroll_later_second:
-		; Second part of the row clearing
-		;
-		std Y+17, temp
-		std Y+18, temp
-		std Y+19, temp
-		std Y+20, temp
-		std Y+21, temp
-		std Y+22, temp
-		std Y+23, temp
-		std Y+24, temp
-		std Y+25, temp
-		std Y+26, temp
-		std Y+27, temp
-		std Y+28, temp
-		std Y+29, temp
-		std Y+30, temp
-		std Y+31, temp
+scroll_later_second:
+	; Second part of the row clearing
+	;
+	std Y+17, temp
+	std Y+18, temp
+	std Y+19, temp
+	std Y+20, temp
+	std Y+21, temp
+	std Y+22, temp
+	std Y+23, temp
+	std Y+24, temp
+	std Y+25, temp
+	std Y+26, temp
+	std Y+27, temp
+	std Y+28, temp
+	std Y+29, temp
+	std Y+30, temp
+	std Y+31, temp
 
-		add scroll_lo, temp		; Move scroll offset by 32 bytes
-		adc scroll_hi, zero		; (one row)
+	add scroll_lo, temp		; Move scroll offset by 32 bytes
+	adc scroll_hi, zero		; (one row)
 
-		cbr state, st_scroll_val	; Remove scroll-later state
+	cbr state, st_scroll_val	; Remove scroll-later state
 
-		cpi scroll_hi, 2		; Check scroll roll over
-		brne wait_hsync			; No, not yet
+	cpi scroll_hi, 2		; Check scroll roll over
+	brne wait_hsync			; No, not yet
 
-		clr scroll_hi			; Overflow, clear scroll offset
+	clr scroll_hi			; Overflow, clear scroll offset
 
 wait_hsync:
 	; Wait for HSYNC timer to reach specified value
