@@ -37,9 +37,9 @@ set_color = lambda fg, bg = 0: serwrite("\x1B[3{0};4{1}m".format(fg, bg))
 
 def rndclear(c = 32, fg = 7, bg = 0):
 	serwrite("\x1B[3{0};4{1}m".format(fg,bg)) # Set colors
-	for loc in random.sample(range(512), 512):
-		move_to(int(loc / 16), loc % 16)
-		serwrite(chr(c))
+	for loc in random.sample(range(256), 256):
+		move_to(int((loc * 2) / 16), loc % 16)
+		serwrite(chr(c) + chr(c))
 	serwrite("\x1B[H") # Move cursor to 0,0
 
 directions = [
