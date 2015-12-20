@@ -106,16 +106,16 @@ for i in range(5):
 	for x in range(17):
 		serwrite("\x1B[{0}]".format(x))
 		ser.flush()
-		time.sleep(0.05)
+		time.sleep(0.03)
 	for x in range(16,-1,-1):
 		serwrite("\x1B[{0}]".format(x))
 		ser.flush()
-		time.sleep(0.05)
+		time.sleep(0.03)
 
 for x in range(17):
 	serwrite("\x1B[{0}]".format(x))
 	ser.flush()
-	time.sleep(0.05)
+	time.sleep(0.03)
 
 ser.flush()
 ser.close()
