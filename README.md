@@ -10,7 +10,7 @@ Wiring 3 Attinys together gets you 8 color output :)
 
 Links:
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxRzJOQVZMNFE0STg/view" target="_blank">Picture (B/W)</a>
-* <a href="https://www.youtube.com/watch?v=f5xURYvWXyU" target="_blank">Video (8-color, ansitester.py)</a>
+* <a href="https://www.youtube.com/watch?v=Y2gl3R3jzjs" target="_blank">Video (8-color, ansitester.py)</a>
 * <a href="https://www.youtube.com/watch?v=1iC2AHI5caI" target="_blank">Full screen scroll video (B/W)</a>
 * <a href="https://www.youtube.com/watch?v=lcVfgj2P_7A" target="_blank">Full screen scroll video (8-color)</a>
 * <a href="https://drive.google.com/file/d/0B2dTzW9TMeBxN29YOVFsZFJ2Sm8/view" target="_blank">Individual row scroll video (B/W)</a>
