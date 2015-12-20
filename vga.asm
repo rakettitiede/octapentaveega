@@ -21,6 +21,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .include "tn85def.inc"
+.include "pixels.inc"
 .include "font.inc"
 
 ; Registers have been named for easier access.
@@ -39,7 +40,7 @@
 .def one 		= r1		; Register for value 1
 .def seq_cnt		= r2		; Counter for several sequences
 .def row_cnt		= r3		; Vertical pixel counter
-.def char_x		= r4		; Predraw-buffer x-offset
+.def char_row		= r4		; Predraw-buffer x-offset
 .def uart_seq		= r5		; UART sequence
 .def uart_next		= r6		; Next UART sequence
 .def clear_cnt		= r7		; Screen clear counter
@@ -97,10 +98,9 @@
 					; We want Timer0 counter to be 0-4 in
 					; jitterfix label. AVR Studio simulator
 					; was used to sync this value.
-.equ VSYNC_LOW		= 489 - 256	; Turn VSYNC low on this vertical line
+.equ VSYNC_LOW		= 490 - 256	; Turn VSYNC low on this vertical line
 .equ VSYNC_HIGH		= VSYNC_LOW + 2	; Turn VSYNC high on this vertical line
-.equ VSYNC_FULL		= 525 - 512	; Full screen is this many lines
-.equ VISIBLE		= 480 - 256	; Visible vline count (+4 lines)
+.equ VISIBLE		= 480 - 256	; Visible vline count
 .equ UART_XOR		= 124		; UART sequence magic XORing value
 .equ UART_INIT 		= 100		; UART sequence initial value after start
 .equ UART_FIRST 	= 24		; UART first sequence
@@ -151,7 +151,6 @@ main:
 	clr vline_hi 			; Vertical line high
 	ldi temp, 3
 	mov row_cnt, temp		; Alternating counter
-	clr char_x			; X offset
 	ldi font_hi, 0x16		; Font flash addr high byte
 
 	clr one				; Register to hold
@@ -620,6 +619,10 @@ ansi_value:
 ansi_command:
 	; Parse ANSI command
 	;
+	cpi uart_buf, 91		; [ = scroll row left
+	breq ansi_scroll_row_left
+	cpi uart_buf, 93		; [ = scroll row left
+	breq ansi_graphics_mode
 	cpi uart_buf, 109		; m = set color
 	breq ansi_set_color
 	cpi uart_buf, 72		; H = move cursor
@@ -632,8 +635,6 @@ ansi_command:
 	breq ansi_enable_wrap
 	cpi uart_buf, 108		; l = disable wrap (lower case L)
 	breq ansi_disable_wrap
-	cpi uart_buf, 91		; [ = scroll row left
-	breq ansi_scroll_row_left
 
 	;
 	; Unknown, dismiss ANSI
@@ -702,6 +703,10 @@ ansi_commence_clear:
 	ldi XH, high(screenbuf)		; of SRAM
 	clr ansi_state
 	rjmp wait_hsync
+
+ansi_graphics_mode:
+	out GPIOR1, ansi_val1
+	rjmp ansi_done
 
 ansi_set_color:
 	; Set colors. We do same check for both values.
@@ -1045,25 +1050,40 @@ housekeeping:
 	mov row_cnt, temp 		; Reset pixel counter
 	inc font_hi			; Increase font line
 
-	; Check if we have drawn one character line
-	cpi font_hi, 0x20
-	brne housekeep_done		; Not yet full line
+	; Check if we have drawn one row of characters
+	;
+	cpi font_hi, 0x20		; Text font
+	breq done_one_row
+	cpi font_hi, 0x16		; Pixel font
+	breq done_one_row
+	rjmp wait_uart 			; Not yet full row
 
-	; Advance to next row
-	adiw XH:XL, 32
+done_one_row:
+	; We've drawn one row of charactesrs, 
+	; advance to next row
+	inc char_row			; Increase row counter
+	adiw XH:XL, 32			; Increase buffer offset
 
-	; Scroll support
+	; See if our buffer has overflown the memory
+	; (might happen if we have scrolled)
 	;
 	ldi temp, high(screen_end)
 	cpi XL, low(screen_end)
 	cpc XH, temp
-	brne no_scr_ovf
+	brne no_buffer_overflow
 	ldi XL, low(screenbuf)
 	ldi XH, high(screenbuf)
 
-no_scr_ovf:
+no_buffer_overflow:
+	in temp, GPIOR1			; See where the text
+	cp char_row, temp		; mode starts from
+	brlo next_row_text
+
 	ldi font_hi, 0x16
-housekeep_done:
+	rjmp wait_uart
+
+next_row_text:
+	ldi font_hi, 0x0C
 	rjmp wait_uart
 
 vertical_sync:
@@ -1113,15 +1133,21 @@ screen_done:
 	clr vline_hi 			; Vertical line high
 	ldi temp, 3
 	mov row_cnt, temp		; Pixel counter
-	clr char_x			; X offset
-	ldi font_hi, 0x16		; Font flash addr high byte
+	clr char_row			; Character row counter
 
-	sbrc state, st_clear		; If we are in screen clearing mode,
-	rjmp wait_uart			; skip buffer clearing
+	ldi XL, low(screenbuf)          ; Pointer to start of 
+	ldi XH, high(screenbuf)         ; the screen buffer.
+	add XL, scroll_lo               ; Add scroll offset
+	adc XH, scroll_hi               ; to address
 
-	ldi XL, low(screenbuf)		; Pointer to start of 
-	ldi XH, high(screenbuf)		; the screen buffer.
-	add XL, scroll_lo		; Add scroll offset
-	adc XH, scroll_hi		; to address
+	in temp, GPIOR1
+	cp temp, zero
+	breq font_begin_text
+	ldi font_hi, 0x0C		; Start with pixel font
+	rjmp wait_uart
 
+font_begin_text:
+	; Screen begins with text font
+	;
+	ldi font_hi, 0x16
 	rjmp wait_uart
