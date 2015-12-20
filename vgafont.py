@@ -57,7 +57,7 @@ try:
 
 	f.write( ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n")
 	f.write( ";;                                                                             ;;\n")
-	f.write( ";;   32 x 14 character VGA output with UART for Attiny85.                      ;;\n")
+	f.write( ";;   32 x 16 character VGA output with UART for Attiny85.                      ;;\n")
 	f.write( ";;                                                                             ;;\n")
 	f.write( ";;                                                                             ;;\n")
 	f.write( ";;   Copyright 2015 Jari Tulilahti                                             ;;\n")
