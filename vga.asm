@@ -923,7 +923,6 @@ jitternop:
 	nop
 	nop
 	nop
-	nop
 
 check_visible:
 	; Check if we are in visible screen area or in vertical blanking
@@ -1024,7 +1023,8 @@ draw_pixels:
 
 	; Make sure we don't draw to porch
 	;
-	sbi USICR, USICLK
+	nop
+	out USIDR, zero
 	sbiw XH:XL, 32			; Go back to beginning or row
 
 check_housekeep:
