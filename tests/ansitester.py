@@ -187,8 +187,8 @@ for zz in range(20):
 
 rndclear()
 # Show color map
-scrolltext = "Attiny85 VGA, displaying 32x14 characters on screen " \
-	"with 6x8 pixel font. Single Attiny85 for Black & White output, " \
+scrolltext = "Attiny85 VGA, displaying 32x16 characters on screen " \
+	"with 6x10 pixel font. Single Attiny85 for Black & White output, " \
 	"Three Attiny85s for 8 color output. " \
 	"Industry standard VGA 640x480 @ 60Hz.     "
 

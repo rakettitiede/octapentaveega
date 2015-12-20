@@ -819,7 +819,7 @@ row_left_start:
 
 row_left_done:
 	ldi temp, 32
-	st -Y, temp
+	std Y+31, temp
 
 	; Increase row count in case we're full-screen scrolling
 	;
