@@ -802,15 +802,15 @@ row_left_start:
 		st Y+, temp
 	.endmacro
 
-	ldi temp, 4
-	cp temp, seq_cnt
-	breq row_left_done
-
 	mov temp, seq_cnt
 	swap temp
 	lsr temp
 	add YL, temp
 	inc seq_cnt
+
+	ldi temp, 4
+	cp temp, seq_cnt
+	breq row_left_done
 
 	scr_left
 	scr_left
@@ -824,8 +824,15 @@ row_left_start:
 	rjmp wait_hsync
 
 row_left_done:
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
+	scr_left
 	ldi temp, 32
-	std Y+31, temp
+	st Y, temp
 
 	; Increase row count in case we're full-screen scrolling
 	;
