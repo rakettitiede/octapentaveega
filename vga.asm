@@ -244,22 +244,23 @@ main:
 
 		; Sync vertical line
 		;
-		ldi temp, 234
+		ldi temp, 235
 		mov vline_lo, temp
 		mov vline_hi, one
 
 		; Delay for final sync
 		;
-		ldi temp, 188
+		ldi temp, 187
 	slave_wait:
 		dec temp
 		brne slave_wait
 
-		; nop
-		; nop
-		; nop
-		; nop
-		; nop
+		; And then fine-tune 
+		;
+		nop
+		nop
+		nop
+		nop
 
 .endif
 
