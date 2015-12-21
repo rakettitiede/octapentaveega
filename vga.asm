@@ -470,12 +470,11 @@ handle_bs:
 
 backspace_no_ovf:
 	sbiw cursor_hi:cursor_lo, 1 	; Move cursor backwards
-	ldi uart_buf, 32
 	ldi YL, low(screenbuf)		; Get screenbuffer address
 	ldi YH, high(screenbuf)
 	add YL, cursor_lo		; Move pointer to cursor
 	adc YH, cursor_hi		; location
-	st Y, uart_buf			; Store byte
+	st Y, zero			; Store empty
 
 backspace_done:
 	rjmp wait_hsync
@@ -505,7 +504,7 @@ not_special:
 
 	mov temp, color_bg		; Check if bg_color has our bit.
 	sbrc temp, COLOR_BIT		; Skip if it does not (store byte as-is)
-	ldi uart_buf, 160		; fg & bg both match = reverse space
+	ldi uart_buf, 128		; fg & bg both match = inverse block
 	rjmp store_char_to_buffer
 
 no_fg_match:
@@ -518,7 +517,7 @@ no_fg_match:
 	rjmp store_char_to_buffer
 
 no_fg_bg_match:
-	ldi uart_buf, 32		; Store space if color doesn't match
+	ldi uart_buf, 0			; Store empty if color doesn't match
 
 store_char_to_buffer:
 	ldi YL, low(screenbuf)		; Get screenbuffer address
@@ -831,8 +830,7 @@ row_left_done:
 	scr_left
 	scr_left
 	scr_left
-	ldi temp, 32
-	st Y, temp
+	st Y, zero
 
 	; Increase row count in case we're full-screen scrolling
 	;
@@ -855,51 +853,51 @@ scroll_later:
 	ldi YH, high(screenbuf)
 	add YL, scroll_lo		; Add scroll offset
 	adc YH, scroll_hi
-	ldi temp, 32
 
 	dec seq_cnt
 	breq scroll_later_second
 
 	; Store space, unrolled 32 times
 	;
-	st Y, temp
-	std Y+1, temp
-	std Y+2, temp
-	std Y+3, temp
-	std Y+4, temp
-	std Y+5, temp
-	std Y+6, temp
-	std Y+7, temp
-	std Y+8, temp
-	std Y+9, temp
-	std Y+10, temp
-	std Y+11, temp
-	std Y+12, temp
-	std Y+13, temp
-	std Y+14, temp
-	std Y+15, temp
-	std Y+16, temp
+	st Y, zero
+	std Y+1, zero
+	std Y+2, zero
+	std Y+3, zero
+	std Y+4, zero
+	std Y+5, zero
+	std Y+6, zero
+	std Y+7, zero
+	std Y+8, zero
+	std Y+9, zero
+	std Y+10, zero
+	std Y+11, zero
+	std Y+12, zero
+	std Y+13, zero
+	std Y+14, zero
+	std Y+15, zero
+	std Y+16, zero
 	rjmp wait_hsync
 
 scroll_later_second:
 	; Second part of the row clearing
 	;
-	std Y+17, temp
-	std Y+18, temp
-	std Y+19, temp
-	std Y+20, temp
-	std Y+21, temp
-	std Y+22, temp
-	std Y+23, temp
-	std Y+24, temp
-	std Y+25, temp
-	std Y+26, temp
-	std Y+27, temp
-	std Y+28, temp
-	std Y+29, temp
-	std Y+30, temp
-	std Y+31, temp
+	std Y+17, zero
+	std Y+18, zero
+	std Y+19, zero
+	std Y+20, zero
+	std Y+21, zero
+	std Y+22, zero
+	std Y+23, zero
+	std Y+24, zero
+	std Y+25, zero
+	std Y+26, zero
+	std Y+27, zero
+	std Y+28, zero
+	std Y+29, zero
+	std Y+30, zero
+	std Y+31, zero
 
+	ldi temp, 32
 	add scroll_lo, temp		; Move scroll offset by 32 bytes
 	adc scroll_hi, zero		; (one row)
 
@@ -961,10 +959,9 @@ clear_screen:
 	; We jump here if clearing screen
 	;
 	ldi temp, 64
-	ldi temp2, 32
 
 clear_loop:
-	st X+, temp2 			; X is set when we get clear command.
+	st X+, zero 			; X is set when we get clear command.
 	dec temp 			; We clear the whole 512 bytes
 	brne clear_loop 		; of memory 64 bytes at a time.
 
@@ -975,8 +972,6 @@ clear_loop:
 	cbr state, st_clear_val		; Everything cleared, clear state bit
 	ldi XL, low(screenbuf)		; Reset X back to beginning of 
 	ldi XH, high(screenbuf)		; screen buffer
-	ldi temp, 3 			; resetting vertical pixel
-	mov row_cnt, temp 		; counter after clear
 	clr scroll_hi
 	clr scroll_lo
 	clr cursor_hi
