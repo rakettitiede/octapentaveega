@@ -934,6 +934,7 @@ jitternop:
 	nop
 	nop
 	nop
+	nop				; The last nop is for porch finetuning
 
 check_visible:
 	; Check if we are in visible screen area or in vertical blanking
