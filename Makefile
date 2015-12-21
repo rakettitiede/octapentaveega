@@ -62,9 +62,12 @@ install: fuse flash
 clean:
 	rm -f *.hex *.obj *.lst *.cof *~
  
-vga-red.hex vga-blue.hex vga-green.hex: vga.asm font.inc tn85def.inc
+vga-red.hex vga-blue.hex vga-green.hex: vga.asm font.inc pixels.inc tn85def.inc
 	$(COMPILE) -l vga.lst vga.asm
 	mv vga.hex vga-$(VGACOLOR).hex
 
-font.inc: vgafont.dat
+font.inc: vgafont.dat vgafont.py
 	python vgafont.py
+
+pixels.inc: graphfont.py
+	python graphfont.py
