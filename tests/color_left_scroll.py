@@ -39,6 +39,7 @@ serwrite("xxxxx\x08") # dismiss if we're left in ANSI mode...
 serwrite("\x1B[2J") # Clear screen
 serwrite("\x1B[m") # Reset colors
 serwrite("\x1B[?7l") # disable wrap
+serwrite("\x1B[0]") # disable graphics
 
 # Show color map
 scrolltext = "                   " \

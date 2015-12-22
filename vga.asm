@@ -72,12 +72,14 @@
 .equ st_scroll		= 3		; Scroll-clear in action
 .equ st_left		= 4		; Scroll row left
 .equ st_full_left 	= 5		; Scroll full screen
+.equ st_tricoder 	= 6		; "Tricoder"-mode
 .equ st_clear_val 	= (1 << 0)	; Value to set/clear clear mode
 .equ st_wrap_val 	= (1 << 1)	; Value to set/clear wrap mode
 .equ st_uart_val 	= (1 << 2)	; Value to set/clear UART buffer state
 .equ st_scroll_val 	= (1 << 3)	; Value to set/clear scroll-clear state
 .equ st_left_val 	= (1 << 4)	; Value to set/clear row-scroll
 .equ st_full_left_val 	= (1 << 5)	; Value to set/clear full-screen-scroll
+.equ st_tricoder_val 	= (1 << 6)	; Value to set/clear tricoder
 
 ; ansi_state: (value)
 ;
@@ -118,6 +120,7 @@
 ; General purpose IO registers used as storage
 ;
 .equ LEFT_CNT		= GPIOR0
+.equ SPLIT_ROW		= GPIOR1
 
 ; All of the 512 byte SRAM is used for screen buffer.
 ;
@@ -257,7 +260,6 @@ main:
 
 		; And then fine-tune 
 		;
-		nop
 		nop
 		nop
 		nop
@@ -456,6 +458,8 @@ uart_buffer_full:
 handle_bs:
 	; Backspace
 	;
+	out GPIOR2, one			; Zero tricorder char
+
 	cp scroll_lo, cursor_lo
 	cpc scroll_hi, cursor_hi	; Cursor at 0,0?
 	breq backspace_done		; Yes. Do nothing
@@ -491,6 +495,7 @@ handle_esc:
 handle_cr_or_lf:
 	; We treat CR and LF the same
 	;
+	out GPIOR2, one			; Zero tricorder char
 	andi cursor_lo, 224		; First column
 	adiw cursor_hi:cursor_lo, 32	; Next line
 	rjmp check_cursor_ovf
@@ -498,6 +503,9 @@ handle_cr_or_lf:
 not_special:
 	; Not special, store character into buffer
 	;
+	sbrc state, st_tricoder		; Are we in tricoder mode?
+	rjmp tricoder_store
+
 	mov temp, color_fg
 	sbrs temp, COLOR_BIT		; skip if fg_color has our bit.
 	rjmp no_fg_match
@@ -505,6 +513,19 @@ not_special:
 	mov temp, color_bg		; Check if bg_color has our bit.
 	sbrc temp, COLOR_BIT		; Skip if it does not (store byte as-is)
 	ldi uart_buf, 128		; fg & bg both match = inverse block
+	rjmp store_char_to_buffer
+
+tricoder_store:
+	in temp, GPIOR2
+
+	mov temp2, temp
+	lsl temp2
+	sbrc temp2, 3
+	mov temp2, one
+	out GPIOR2, temp2
+
+	sbrs temp, COLOR_BIT
+	rjmp wait_hsync
 	rjmp store_char_to_buffer
 
 no_fg_match:
@@ -585,6 +606,8 @@ ansi_data:
 	; If command has multiple values separated by semicolon
 	; we only store the last two
 	;
+	out GPIOR2, one			; Zero tricorder char
+
 	cpi uart_buf, 59		; Ascii 59 = ;
 	brne ansi_notsemi		; Was not semicolon
 
@@ -705,7 +728,7 @@ ansi_commence_clear:
 	rjmp wait_hsync
 
 ansi_graphics_mode:
-	out GPIOR1, ansi_val1
+	out SPLIT_ROW, ansi_val1
 	rjmp ansi_done
 
 ansi_set_color:
@@ -748,28 +771,42 @@ ansi_color_reset:
 	mov color_bg, temp		; Default background color
 	rjmp ansi_color_next
 
+ansi_done:
+	clr ansi_state			; Done Parsing ANSI
+	rjmp wait_hsync			; Wait for HSYNC
+
 unknown_ansi:
-	; Unknown ANSI escape after ESC. If it's not left scroll
-	; just print it into buffer. It might also be the scroll
-	; command which we check here
+	; Unknown ANSI escape after ESC. 
+	; We have implemented our own escape-codes which
+	; are checked here
 	;
-	clr ansi_state 
+	clr ansi_state			; Done Parsing ANSI
 
-	ldi temp, 68			; Ascii 91 = D
-	cpse uart_buf, temp		; Was it left scroll?
-	rjmp not_special		; No it was not..
+	cpi uart_buf, 68		; Was it left scroll? 91 = D
+	breq ansi_left_scroll
+	cpi uart_buf, 71		; Tricoder mode start?
+	breq ansi_tricoder_start
+	cpi uart_buf, 84		; Tricoder mode stop?
+	breq ansi_tricoder_stop
 
+	rjmp not_special		; Just store the char as-is
+
+ansi_left_scroll:
 	in temp, LEFT_CNT		; Increase the screen
 	ldi temp2, 32			; left scroll counter
 	cpse temp, temp2		; Max out counter at 32 columns
 	inc temp
 	out LEFT_CNT, temp
- 
 	rjmp wait_hsync
 
-ansi_done:
-	clr ansi_state			; Done Parsing ANSI
-	rjmp wait_hsync			; Wait for HSYNC
+ansi_tricoder_start:
+	sbr state, st_tricoder_val
+	out GPIOR2, one
+	rjmp wait_hsync
+
+ansi_tricoder_stop:
+	cbr state, st_tricoder_val
+	rjmp wait_hsync
 
 row_left:
 	; Scroll row left, one half at a time
@@ -1079,7 +1116,7 @@ done_one_row:
 	ldi XH, high(screenbuf)
 
 no_buffer_overflow:
-	in temp, GPIOR1			; See where the text
+	in temp, SPLIT_ROW			; See where the text
 	cp char_row, temp		; mode starts from
 	brlo next_row_text
 
@@ -1144,7 +1181,7 @@ screen_done:
 	add XL, scroll_lo               ; Add scroll offset
 	adc XH, scroll_hi               ; to address
 
-	in temp, GPIOR1
+	in temp, SPLIT_ROW
 	cp temp, zero
 	breq font_begin_text
 	ldi font_hi, 0x0C		; Start with pixel font
