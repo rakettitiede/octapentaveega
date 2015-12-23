@@ -841,8 +841,7 @@ row_left_start:
 	add YL, temp
 	inc seq_cnt
 
-	ldi temp, 4
-	cp temp, seq_cnt
+	cpi temp, 4
 	breq row_left_done
 
 	scr_left
