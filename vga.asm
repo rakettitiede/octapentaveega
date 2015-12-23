@@ -458,8 +458,6 @@ uart_buffer_full:
 handle_bs:
 	; Backspace
 	;
-	out GPIOR2, one			; Zero tricorder char
-
 	cp scroll_lo, cursor_lo
 	cpc scroll_hi, cursor_hi	; Cursor at 0,0?
 	breq backspace_done		; Yes. Do nothing
@@ -495,7 +493,6 @@ handle_esc:
 handle_cr_or_lf:
 	; We treat CR and LF the same
 	;
-	out GPIOR2, one			; Zero tricorder char
 	andi cursor_lo, 224		; First column
 	adiw cursor_hi:cursor_lo, 32	; Next line
 	rjmp check_cursor_ovf
