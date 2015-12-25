@@ -91,7 +91,7 @@
 
 ; Constants
 ;
-.equ UART_WAIT		= 135		; HSYNC timer value where we start to
+.equ UART_WAIT		= 138		; HSYNC timer value where we start to
 					; look for UART samples (or handle
 					; data received)
 .equ HSYNC_WAIT		= 2		; HSYNC value to start precalculating
@@ -144,6 +144,16 @@ vectors:
 .endif
 
 main:
+	; Disable watchdog asap after reset. Timed sequence.
+	;
+	wdr
+	clr temp
+	out MCUSR, temp
+	ldi temp, (1 << WDCE) | (1 << WDE)
+	out WDTCR, temp
+	clr temp
+	out WDTCR, temp
+
 	; Set default values to registers
 	;
 	clr zero			; Zero the zero-register
@@ -243,7 +253,7 @@ main:
 		; We continue here after INT0 has triggered.
 		;
 		cli
-		out GIMSK, zero		; Disable interrupts
+		out GIMSK, zero		; Disable INT0
 
 		; Sync vertical line
 		;
@@ -681,7 +691,7 @@ ansi_move_xy:
 	cpi cursor_hi, 2		; check if cursor overflows screen
 	brlo no_move_overflow
 
-	subi cursor_hi, 2		; compensate overflow
+	subi cursor_hi, 2 		; compensate overflow
 
 no_move_overflow:
 	rjmp ansi_done
@@ -785,8 +795,17 @@ unknown_ansi:
 	breq ansi_tricoder_start
 	cpi uart_buf, 84		; Tricoder mode stop?
 	breq ansi_tricoder_stop
+	cpi uart_buf, 99		; Full reset?
+	breq full_reset
 
 	rjmp not_special		; Just store the char as-is
+
+full_reset:
+	ldi temp, (1 << WDE)		; Reset with watchdog
+	out WDTCR, temp
+reset_loop:
+	rjmp reset_loop
+
 
 ansi_left_scroll:
 	in temp, LEFT_CNT		; Increase the screen
@@ -817,7 +836,7 @@ row_left:
 	mov temp, scroll_row 		; Take row number from store
 	swap temp 			; and multiply by 32
 	lsl temp			; with left shifting 5 times
-	rol temp2
+	rol temp2			; Roll to high byte
 
 	add YL, temp 			; Add row address to screen
 	adc YH, temp2 			; buffer address
@@ -842,7 +861,7 @@ row_left_start:
 	inc seq_cnt
 
 	sbrc seq_cnt, 2
-	rjmp row_left_done
+	rjmp row_left_last
 
 	scr_left
 	scr_left
@@ -855,7 +874,7 @@ row_left_start:
 
 	rjmp wait_hsync
 
-row_left_done:
+row_left_last:
 	scr_left
 	scr_left
 	scr_left
@@ -865,9 +884,8 @@ row_left_done:
 	scr_left
 	st Y, zero
 
-	; Increase row count in case we're full-screen scrolling
+	; Increase counter (we might be full-screen scrolling)
 	;
-	sbrc state, st_full_left
 	inc scroll_row
 
 	; Implicate that row is done
