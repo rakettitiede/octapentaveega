@@ -121,6 +121,8 @@
 ;
 .equ LEFT_CNT		= GPIOR0
 .equ SPLIT_ROW		= GPIOR1
+.equ TRICODE_CNT	= GPIOR2
+
 
 ; All of the 512 byte SRAM is used for screen buffer.
 ;
@@ -523,13 +525,13 @@ not_special:
 	rjmp store_char_to_buffer
 
 tricoder_store:
-	in temp, GPIOR2
+	in temp, TRICODE_CNT
 
 	mov temp2, temp
 	lsl temp2
 	sbrc temp2, 3
 	mov temp2, one
-	out GPIOR2, temp2
+	out TRICODE_CNT, temp2
 
 	sbrs temp, COLOR_BIT
 	rjmp wait_hsync
@@ -613,7 +615,7 @@ ansi_data:
 	; If command has multiple values separated by semicolon
 	; we only store the last two
 	;
-	out GPIOR2, one			; Zero tricorder char
+	out TRICODE_CNT, one			; Zero tricorder char
 
 	cpi uart_buf, 59		; Ascii 59 = ;
 	brne ansi_notsemi		; Was not semicolon
@@ -817,7 +819,7 @@ ansi_left_scroll:
 
 ansi_tricoder_start:
 	sbr state, st_tricoder_val
-	out GPIOR2, one
+	out TRICODE_CNT, one
 	rjmp wait_hsync
 
 ansi_tricoder_stop:

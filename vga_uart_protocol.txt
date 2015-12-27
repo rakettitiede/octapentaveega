@@ -7,7 +7,8 @@ CR and LF are both treated as same; cursor is placed into
 the beginning of next line. If cursor is already on last line, 
 screen is scrolled up.
 
-Limited subset of ANSI escapes is supported.
+Limited subset of ANSI escapes is supported, and also few non-standard
+escape codes.
 
 ANSI sequence begins when "Escape" 0x1B (ascii 27 / ESC) character
 followed by [ character is encountered.
@@ -57,11 +58,12 @@ of line (cursor advances
 to next line). Default
 mode.
 -----------------------------------------------------------------------------
-Scroll row left one 		<ESC>[#row#[	#row# = 0 .. 13
-column, emptying last
-character on row.
 
-Example: <ESC>[9[ scrolls row 9 (10th row) left one column.
+
+Non-standard Escape codes
+-----------------------------------------------------------------------------
+Reset device			<ESC>c		Resets all variables and
+						reboots device.
 -----------------------------------------------------------------------------
 Scroll full screen left		<ESC>D		(Notice missing [ -char)
 one column, emptying last
@@ -69,8 +71,33 @@ character of every row
 
 Scroll commands are buffered if sent before the actual scroll has commenced.
 -----------------------------------------------------------------------------
+Scroll row left one 		<ESC>[#row#[	#row# = 0 .. 15
+column, emptying last
+character on row.
 
-<ESC> followed by any other character than '[' or 'D' stores the character
-as-is to screen buffer, allowing to display special characters on screen.
+Example: <ESC>[9[ scrolls row 9 (10th row) left one column.
+-----------------------------------------------------------------------------
+Graphics/Text-mode split	<ESC>[#row#]	#row# = 0 .. 16
+						Text-mode starts from #row#
+						0 = full text
+						16 = full graphics
+						1..15 = split screen to
+						        graphics / text
+-----------------------------------------------------------------------------
+Tricoder mode start		<ESC>G		In tricoder mode, each byte
+						is sent 3 times: 
+						Red, Green and Blue value
+						separately. Useful in
+						graphics mode as it allows
+						you to draw any pixel
+						with any of the 8 colors.
+-----------------------------------------------------------------------------
+Tricoder mode end		<ESC>T
+-----------------------------------------------------------------------------
+<ESC> followed by any other character than command prints the character to 
+screen buffer as-is. 
+
+Following ascii codes need to be escaped, if you want to print them to screen:
+8, 10, 13, 27, 127
 
 
