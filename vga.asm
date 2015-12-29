@@ -121,7 +121,7 @@
 ;
 .equ LEFT_CNT		= GPIOR0
 .equ SPLIT_ROW		= GPIOR1
-.equ TRICODE_CNT	= GPIOR2
+.equ TRICODE_CNT 	= GPIOR2
 
 
 ; All of the 512 byte SRAM is used for screen buffer.
@@ -898,7 +898,7 @@ row_left_last:
 	scr_left
 	scr_left
 	scr_left
-	st Y, zero
+	st Y+, zero
 
 	; Increase counter (we might be full-screen scrolling)
 	;
