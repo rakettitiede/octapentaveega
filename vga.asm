@@ -827,8 +827,11 @@ ansi_tricoder_stop:
 	rjmp wait_hsync
 
 row_left:
-	; Scroll row left, one half at a time
+	; Scroll row left, in multiple cycles
 	;
+	cpse seq_cnt, zero
+	rjmp row_left_scroll
+
 	ldi YL, low(screenbuf)		; Get screenbuffer address
 	ldi YH, high(screenbuf)
 	add YL, scroll_lo		; Add scroll offset low
@@ -846,24 +849,32 @@ row_left:
 	ldi temp, 2
 	cpi YL, low(screen_end) 	; check for screen buffer
 	cpc YH, temp			; address overflow
-	brlo row_left_start
+	brlo row_left_no_overflow
 
 	subi YH, 2			; compensate overflow
 
-row_left_start:
+row_left_no_overflow:
+	out SPL, YL			; Store address
+	out SPH, YH			; for later
+
+	inc seq_cnt
+	rjmp wait_hsync
+
+
+row_left_scroll:
+	; Commence the actual scroll
+	; 
 	.macro scr_left
 		ldd temp, Y+1
 		st Y+, temp
 	.endmacro
 
-	mov temp, seq_cnt
-	swap temp
-	lsr temp
-	add YL, temp
-	inc seq_cnt
+	in YL, SPL			; Retrieve buffer
+	in YH, SPH			; address
 
 	sbrc seq_cnt, 2
 	rjmp row_left_last
+	inc seq_cnt
 
 	scr_left
 	scr_left
@@ -873,6 +884,9 @@ row_left_start:
 	scr_left
 	scr_left
 	scr_left
+
+	out SPL, YL			; Store back
+	out SPH, YH			; for later
 
 	rjmp wait_hsync
 

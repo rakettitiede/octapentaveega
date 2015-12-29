@@ -28,7 +28,7 @@ pixrows = 3
 
 for char in range(256):
 	row = 0
-	number = char
+	number = char 
 	for i in range(4):
 		pixrows ^= 1
 		pix = pixels[(number >> 6) & 3]
