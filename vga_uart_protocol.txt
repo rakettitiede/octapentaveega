@@ -63,7 +63,9 @@ mode.
 Non-standard Escape codes
 -----------------------------------------------------------------------------
 Reset device			<ESC>c		Resets all variables and
-						reboots device.
+						reboots device. Wait 1 second
+						after this command before 
+						sending new data.
 -----------------------------------------------------------------------------
 Scroll full screen left		<ESC>D		(Notice missing [ -char)
 one column, emptying last
