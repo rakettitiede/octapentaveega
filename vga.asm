@@ -1100,7 +1100,8 @@ draw_pixels:
 	; Make sure we don't draw to porch
 	;
 	nop
-	out USIDR, zero
+	nop
+	sbi USICR, USICLK
 	sbiw XH:XL, 32			; Go back to beginning or row
 
 check_housekeep:
@@ -1222,3 +1223,4 @@ font_begin_text:
 	;
 	ldi font_hi, 0x16
 	rjmp wait_uart
+
