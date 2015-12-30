@@ -37,6 +37,7 @@ set_color = lambda fg, bg = 0: serwrite("\x1B[3{0};4{1}m".format(fg, bg))
 
 serwrite("xxxxx\x08") # dismiss if we're left in ANSI mode...
 serwrite("\x1B[2J") # Clear screen
+serwrite("\x1BT") # Dismiss tricoder
 serwrite("\x1B[m") # Reset colors
 serwrite("\x1B[?7l") # disable wrap
 serwrite("\x1B[0]") # disable graphics
@@ -50,12 +51,13 @@ scrolltext = "                   " \
 	"                         "
 
 a = 0
+move_to(31,0)
 
 while True:
 	set_color((a % 7) + 1)
 	for z in range(16):
-		move_to(31, z)
 		serwrite(scrolltext[a+(16 - z)])
+		serwrite("\x1B[B")
 		ser.flush()
 	serwrite("\x1BD")
 	ser.flush()

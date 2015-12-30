@@ -48,11 +48,12 @@ scrolltext = "                " \
 	"                     "
 
 a = 0
+move_to(31,0)
 
 while True:
 	for z in range(16):
-		move_to(31, z)
 		serwrite(scrolltext[a+(16 - z)])
+		serwrite("\x1B[B")
 		ser.flush()
 	serwrite("\x1BD")
 	ser.flush()
@@ -61,6 +62,5 @@ while True:
 
 	if a > len(scrolltext) - 18:
 		a = 0
-
 
 ser.close()

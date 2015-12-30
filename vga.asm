@@ -667,6 +667,10 @@ ansi_command:
 	breq ansi_enable_wrap
 	cpi uart_buf, 108		; l = disable wrap (lower case L)
 	breq ansi_disable_wrap
+	cpi uart_buf, 66		; B = cursor down
+	breq ansi_move_down
+	cpi uart_buf, 67		; C = cursor right
+	breq ansi_move_right
 
 	;
 	; Unknown, dismiss ANSI
@@ -679,6 +683,14 @@ ansi_scroll_row_left:
 	mov scroll_row, ansi_val1	; Store row number for later
 	rjmp ansi_done
 
+ansi_move_down:
+	adiw cursor_hi:cursor_lo, 32
+	rjmp ansi_move_check_overflow
+
+ansi_move_right:
+	adiw cursor_hi:cursor_lo, 1
+	rjmp ansi_move_check_overflow
+
 ansi_move_xy:
 	clr cursor_hi			; Calculate cursor location
 	mov cursor_lo, ansi_val2
@@ -690,6 +702,7 @@ ansi_move_xy:
 	add cursor_lo, scroll_lo	; Add scroll offset to
 	adc cursor_hi, scroll_hi	; cursor
 
+ansi_move_check_overflow:
 	cpi cursor_hi, 2		; check if cursor overflows screen
 	brlo no_move_overflow
 
