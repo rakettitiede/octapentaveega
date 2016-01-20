@@ -40,6 +40,7 @@ endif
 
 # Change this to reflect your programmer
 #
+#PROGRAMMER = -c avrispmkii -P /dev/cu.usbmodemU21 -B4
 PROGRAMMER = -c usbasp
 
 # Don't change below
