@@ -615,9 +615,9 @@ ansi_data:
 	; If command has multiple values separated by semicolon
 	; we only store the last two
 	;
-	out TRICODE_CNT, one			; Zero tricorder char
+	out TRICODE_CNT, one		; Zero tricorder char
 
-	cpi uart_buf, 59		; Ascii 59 = ;
+	cpi uart_buf, ';'		; Check for semicolon
 	brne ansi_notsemi		; Was not semicolon
 
 	; 
@@ -631,7 +631,7 @@ ansi_data:
 ansi_notsemi:
 	; Was not semicolon. Check if we got number or command
 	;
-	cpi uart_buf, 65		; Crude separation to numbers & letters
+	cpi uart_buf, 'A'		; Crude separation to numbers & letters
 	brsh ansi_command		; It's command letter
 
 ansi_value:
@@ -643,7 +643,7 @@ ansi_value:
 	add ansi_val1, temp
 	lsl ansi_val1
 
-	subi uart_buf, 48		; Subtract ascii value for "0"
+	subi uart_buf, '0'		; Subtract ascii value for "0"
 	add ansi_val1, uart_buf		; Add result to value
 
 	rjmp wait_hsync			; Wait for HSYNC
@@ -651,29 +651,29 @@ ansi_value:
 ansi_command:
 	; Parse ANSI command
 	;
-	cpi uart_buf, 91		; [ = scroll row left
+	cpi uart_buf, '['		; [ = scroll row left
 	breq ansi_scroll_row_left
-	cpi uart_buf, 93		; [ = scroll row left
+	cpi uart_buf, ']'		; [ = scroll row left
 	breq ansi_graphics_mode
-	cpi uart_buf, 109		; m = set color
+	cpi uart_buf, 'm'		; m = set color
 	breq ansi_set_color
-	cpi uart_buf, 72		; H = move cursor
+	cpi uart_buf, 'H'		; H = move cursor
 	breq ansi_move_xy
-	cpi uart_buf, 102		; f = move cursor
+	cpi uart_buf, 'f'		; f = move cursor
 	breq ansi_move_xy
-	cpi uart_buf, 74		; J = clear screen
+	cpi uart_buf, 'J'		; J = clear screen
 	breq ansi_clear_screen
-	cpi uart_buf, 104		; h = enable wrap
+	cpi uart_buf, 'h'		; h = enable wrap
 	breq ansi_enable_wrap
-	cpi uart_buf, 108		; l = disable wrap (lower case L)
+	cpi uart_buf, 'l'		; l = disable wrap (lower case L)
 	breq ansi_disable_wrap
-	cpi uart_buf, 66		; B = cursor down
+	cpi uart_buf, 'B'		; B = cursor down
 	breq ansi_move_down
-	cpi uart_buf, 67		; C = cursor right
+	cpi uart_buf, 'C'		; C = cursor right
 	breq ansi_move_right
 
-	;
 	; Unknown, dismiss ANSI
+	;
 	clr ansi_state
 	rjmp wait_hsync
 
@@ -804,13 +804,13 @@ unknown_ansi:
 	;
 	clr ansi_state			; Done Parsing ANSI
 
-	cpi uart_buf, 68		; Was it left scroll? 91 = D
+	cpi uart_buf, 'D'		; D = Left scroll
 	breq ansi_left_scroll
-	cpi uart_buf, 71		; Tricoder mode start?
+	cpi uart_buf, 'G'		; G (Graphics) = Tricoder mode start
 	breq ansi_tricoder_start
-	cpi uart_buf, 84		; Tricoder mode stop?
+	cpi uart_buf, 'T'		; T (Text) = Tricoder mode stop
 	breq ansi_tricoder_stop
-	cpi uart_buf, 99		; Full reset?
+	cpi uart_buf, 'c'		; c = Full reset (clear all)
 	breq full_reset
 
 	rjmp not_special		; Just store the char as-is
