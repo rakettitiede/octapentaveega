@@ -79,6 +79,10 @@ character on row.
 
 Example: <ESC>[9[ scrolls row 9 (10th row) left one column.
 -----------------------------------------------------------------------------
+Move cursor down		<ESC>[B		Moves cursor down.
+-----------------------------------------------------------------------------
+Move cursor forward		<ESC>[C		Moves cursor forward.
+-----------------------------------------------------------------------------
 Graphics/Text-mode split	<ESC>[#row#]	#row# = 0 .. 16
 						Text-mode starts from #row#
 						0 = full text
