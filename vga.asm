@@ -2,7 +2,7 @@
 ;;                                                                            ;;
 ;;  32 x 16 character VGA output with UART for Attiny85.                      ;;
 ;;                                                                            ;;
-;;  (C) Copyright 2015 Jari Tulilahti                                         ;;
+;;  (C) Copyright 2015-2016 Jari Tulilahti                                    ;;
 ;;                                                                            ;;
 ;;  All right and deserved.                                                   ;;
 ;;                                                                            ;;
@@ -254,7 +254,7 @@ main:
 	slave_sync:
 		; We continue here after INT0 has triggered.
 		;
-		cli
+		cli			; Disable interrupts for good (rest of code in busyloop)
 		out GIMSK, zero		; Disable INT0
 
 		; Sync vertical line
@@ -1160,7 +1160,7 @@ done_one_row:
 	ldi XH, high(screenbuf)
 
 no_buffer_overflow:
-	in temp, SPLIT_ROW			; See where the text
+	in temp, SPLIT_ROW		; See where the text
 	cp char_row, temp		; mode starts from
 	brlo next_row_text
 

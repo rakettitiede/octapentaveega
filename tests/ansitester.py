@@ -3,7 +3,7 @@
 ##   Very simple ANSI-tester Python application for Attiny85 VGA               ##
 ##                                                                             ##
 ##                                                                             ##
-##   (C) Copyright 2015 Jari Tulilahti                                         ##
+##   (C) Copyright 2015-2016 Jari Tulilahti                                    ##
 ##                                                                             ## 
 ##   All right and deserved.                                                   ## 
 ##                                                                             ##
@@ -195,7 +195,7 @@ scrolltext = "Attiny85 VGA, displaying 32x16 characters on screen " \
 	"Industry standard VGA 640x480 @ 60Hz.     "
 
 move_to(0, 2);
-serwrite("       (C) 2015 // Jartza\n")
+serwrite("    (C) 2015-2016 // Jartza\n")
 serwrite("\n")
 serwrite("    Attiny85 running @ 20MHz\n")
 

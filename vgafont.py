@@ -1,7 +1,7 @@
 #
 #   Quick'n'Dirty Font Creator & Reorganizer for Attiny85 VGA.
 # 
-#   Copyright 2015 Jari Tulilahti
+#   Copyright 2015-2016 Jari Tulilahti
 #   
 #   All right and deserved.
 #
@@ -60,7 +60,7 @@ try:
 	f.write( ";;   32 x 16 character VGA output with UART for Attiny85.                      ;;\n")
 	f.write( ";;                                                                             ;;\n")
 	f.write( ";;                                                                             ;;\n")
-	f.write( ";;   Copyright 2015 Jari Tulilahti                                             ;;\n")
+	f.write( ";;   Copyright 2015-2016 Jari Tulilahti                                        ;;\n")
 	f.write( ";;                                                                             ;;\n")
 	f.write( ";;   All right and deserved                                                    ;;\n")
 	f.write( ";;                                                                             ;;\n")
