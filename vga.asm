@@ -21,8 +21,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .include "tn85def.inc"
-.include "pixels.inc"
-.include "font.inc"
 
 ; Registers have been named for easier access.
 ; in addition we use all of the X, Y and Z
@@ -1237,3 +1235,5 @@ font_begin_text:
 	ldi font_hi, 0x16
 	rjmp wait_uart
 
+.include "pixels.inc"
+.include "font.inc"
