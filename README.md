@@ -1,6 +1,6 @@
 # OctaPentaVeega
 
-Fun hobby project to generate 32 x 16 character VGA output from Attiny85 with 6x10 pixel font.
+Fun hobby project to generate 32 x 16 characters of text on VGA output (or alternatively 64x64 pixel graphics, or split-screen graphics/text) from Attiny85 with 6x10 pixel font.
 
 Data is read from UART at 9600bps. [Subset of ANSI escapes is supported](https://github.com/Jartza/octapentaveega/blob/master/vga_uart_protocol.txt).
 
