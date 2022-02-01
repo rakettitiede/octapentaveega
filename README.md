@@ -6,8 +6,6 @@ Data is read from UART at 9600bps. [Subset of ANSI escapes is supported](https:/
 
 Wiring 3 Attinys together gets you 8 color output :)
 
-...work in progress, documentation appears in http://labs.rakettitiede.com/language/en/ when done.
-
 Links:
 * <a href="https://www.youtube.com/watch?v=G1QWNDck0yU" target="_blank">Video: Ansi tester 8-color (ansitester.py)</a>
 * <a href="https://www.youtube.com/watch?v=Vw5xGuLFy8Q" target="_blank">Video: Ansi tester Black & White (ansitester.py)</a>
